@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Llena el hueco · La Sobremesa</title>
+  <script src="../../nucleo/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Zilla+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../../nucleo/tema.css">
+  <link rel="stylesheet" href="../../nucleo/base.css">
+  <script src="../../nucleo/vendor/qrcode.js"></script>
+  <style>
+    /* ---------- Celular, tablet o laptop de cada jugador ---------- */
+    .jugador { max-width: 620px; margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 14px; }
+    .barra { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .barra .marca { font-size: 1.05rem; }
+    .barra-der { display: flex; align-items: center; gap: 8px; }
+    .codigo-mini { font-family: var(--fuente-titulo); font-weight: 700; color: var(--acento); letter-spacing: .12em; }
+    .rol { border: 0; border-radius: 999px; padding: 5px 11px; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; background: var(--brillo-acento); color: var(--acento); }
+    .envoltura-menu { position: relative; }
+    .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 220px; display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: 12px; background: var(--fondo-2); border: 1px solid var(--linea); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+    .menu button { text-align: left; border: 0; background: none; padding: 10px 12px; border-radius: 8px; font-weight: 600; }
+    .menu button:hover { background: var(--superficie-2); }
+    h1.titulo { font-size: 1.6rem; }
+    .sub { margin: 0; color: var(--suave); }
+    .centrado { text-align: center; }
+    .centro { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 24px; }
+    .espera { padding: 16px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; }
+    .espera p { margin: 0; color: var(--suave); }
+    .aviso-local { margin: 0; font-size: .85rem; color: var(--suave); border: 1px dashed var(--linea); border-radius: 10px; padding: 10px; text-align: center; }
+    .enlace { background: none; border: 0; color: var(--suave); text-decoration: underline; padding: 6px; font-size: .88rem; text-align: center; }
+
+    /* Frase: carta oscura con el hueco marcado */
+    .frase-carta { display: block; width: 100%; text-align: left; background: var(--tinta); color: var(--carta); border: 1.5px solid var(--borde-acento); border-radius: 14px; padding: 16px 18px 18px; box-shadow: 3px 4px 0 rgba(0,0,0,.45); }
+    .frase-carta p { margin: 0; font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.3rem; line-height: 1.3; }
+    .frase-meta { display: block; margin-bottom: 8px; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--acento); }
+    .frase-carta .hueco { color: var(--acento); letter-spacing: .05em; }
+    .frase-carta .lleno { color: var(--acento); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+    .frase-carta .aparte { display: block; margin-top: 10px; }
+    .frase-carta.tenue { opacity: .7; }
+    .frase-carta.grande p { font-size: 1.55rem; }
+    .frase-carta.chica p { font-size: 1rem; }
+    .frase-carta.ganadora { border-color: var(--destacado); box-shadow: 0 0 0 3px var(--destacado), 3px 4px 0 rgba(0,0,0,.45); }
+    .frase-carta.opcion { cursor: pointer; }
+    .frase-carta.opcion.sel { border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento); }
+
+    /* Mano */
+    .mano-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    @media (min-width: 560px) { .mano-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .carta.mano { position: relative; border: 0; text-align: left; min-height: 104px; padding: 12px 12px 14px; font-size: 1rem; line-height: 1.25; display: flex; flex-direction: column; gap: 6px; transition: transform .12s; }
+    .carta.mano.sel { outline: 3px solid var(--acento); outline-offset: 2px; transform: translateY(-3px); }
+    .carta.mano .num { position: absolute; top: -9px; right: -9px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--acento); color: var(--tinta); font-style: normal; font-weight: 700; font-size: .85rem; }
+    .carta.blanca small { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+    .carta.blanca textarea { width: 100%; flex: 1; border: 1.5px dashed rgba(0,0,0,.35); border-radius: 8px; background: transparent; color: var(--tinta); padding: 6px; resize: none; font-weight: 600; font-size: .95rem; }
+    .pie-fijo { position: sticky; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 5; }
+    .pie-fijo .btn { width: 100%; box-shadow: 0 8px 22px rgba(0,0,0,.45); }
+
+    .estado-envios { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .chip { font-size: .8rem; padding: 4px 10px; border-radius: 999px; background: var(--superficie-2); color: var(--suave); }
+    .chip.listo { background: var(--brillo-acento); color: var(--texto); }
+    .opciones-ganadora, .reveladas { display: flex; flex-direction: column; gap: 10px; }
+
+    .celebra { text-align: center; padding: 10px 0 4px; }
+    .celebra h2 { font-size: 2rem; color: var(--destacado); }
+    .celebra.mia h2 { color: var(--acento); }
+
+    /* Puntos */
+    .puntos { padding: 0; }
+    .puntos summary, .reglas summary { padding: 12px 14px; cursor: pointer; font-weight: 700; color: var(--suave); }
+    .reglas ol { margin: 0; padding: 0 18px 14px 34px; color: var(--suave); display: grid; gap: 6px; }
+    .lista-puntos { display: flex; flex-direction: column; gap: 6px; padding: 0 10px 10px; }
+    .fila-puntos { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--superficie); border: 1px solid var(--linea); }
+    .fila-puntos.yo { border-color: var(--borde-acento); }
+    .fila-puntos.fuera { opacity: .5; }
+    .fila-puntos b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fila-puntos .pts { font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.2rem; color: var(--acento); min-width: 1.5em; text-align: right; }
+    .lista-puntos.grande { padding: 0; }
+    .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none; font-family: var(--fuente-titulo); font-weight: 700; color: var(--tinta); }
+    .insignia { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--brillo-acento); color: var(--acento); flex: none; }
+    .insignia.listo { background: var(--superficie-2); color: var(--listo); }
+
+    /* Preparar la partida */
+    .prep { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .opciones-mazo { display: flex; flex-direction: column; gap: 8px; }
+    .opcion-mazo { display: flex; flex-direction: column; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--linea); background: var(--superficie); }
+    .opcion-mazo[aria-pressed="true"] { border-color: var(--acento); }
+    .opcion-mazo span { font-size: .8rem; color: var(--suave); }
+    .contador { display: flex; align-items: center; gap: 14px; }
+    .contador b { font-family: var(--fuente-titulo); font-size: 1.6rem; min-width: 1.4em; text-align: center; }
+    .contador .btn { width: 44px; height: 40px; font-size: 1.2rem; }
+    .interruptor { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); cursor: pointer; }
+    .interruptor input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--acento); flex: none; }
+    .interruptor span { display: flex; flex-direction: column; }
+    .interruptor small { color: var(--suave); font-size: .8rem; }
+
+    /* ---------- Pantalla (tele, Chromecast o laptop) ----------
+       CSS conservador para navegadores de tele: flexbox y vh/vw. */
+    body.modo-pantalla { overflow: hidden; }
+    .pantalla { position: fixed; top: 0; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; padding: 4vh 4vw; }
+    .p-arriba { display: flex; justify-content: space-between; align-items: center; font-size: 2.4vh; color: var(--suave); margin-bottom: 3vh; }
+    .p-arriba .marca { font-size: 2.8vh; }
+    .p-cuerpo { flex: 1; display: flex; min-height: 0; }
+    .p-centro { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; margin-right: 4vw; }
+    .p-lado { width: 28vw; display: flex; flex-direction: column; }
+    .p-lado .etiqueta { font-size: 1.8vh; margin-bottom: 1.4vh; }
+    .p-lado .lista-puntos { padding: 0; }
+    .p-lado .fila-puntos { padding: 1.2vh 1.4vh; margin-bottom: 1vh; font-size: 2.6vh; border-radius: 1.2vh; }
+    .p-lado .fila-puntos .pts { font-size: 3.4vh; }
+    .p-lado .av { width: 4.4vh; height: 4.4vh; font-size: 2.2vh; margin-right: 1.2vh; }
+    .p-lado .insignia { font-size: 1.5vh; padding: .4vh 1vh; margin-left: 1vh; }
+    .frase-carta.tele { padding: 4vh 4vh 5vh; border-radius: 2vh; border-width: 2px; }
+    .frase-carta.tele p { font-size: 5.4vh; }
+    .frase-carta.tele .frase-meta { font-size: 1.8vh; margin-bottom: 2vh; }
+    .p-titulo h1 { font-size: 9vh; }
+    .p-titulo p { font-size: 3vh; color: var(--suave); margin: 2vh 0 0; }
+    .p-titulo .etiqueta { font-size: 2vh; }
+    .p-pie { margin-top: 3vh; font-size: 2.8vh; color: var(--suave); }
+    .p-previas { display: flex; flex-wrap: wrap; margin-top: 3vh; }
+    .p-previas .carta { font-size: 2.2vh; padding: 1.2vh 1.6vh; margin: 0 1.2vh 1.2vh 0; border-radius: 1vh; max-width: 30%; }
+    .p-ganador { font-size: 4.4vh; margin-bottom: 3vh; }
+    .p-ganador b { color: var(--destacado); }
+    .p-esquina { position: fixed; right: 2vw; bottom: 2.4vh; display: flex; align-items: center; padding: 1.2vh 1.6vh; border-radius: 1.4vh; background: var(--fondo-3); border: 1px solid var(--linea); opacity: .92; }
+    .p-esquina canvas { width: 11vh; height: 11vh; border-radius: .8vh; image-rendering: pixelated; display: block; margin-right: 1.4vh; }
+    .p-esquina div { display: flex; flex-direction: column; font-size: 1.7vh; color: var(--suave); line-height: 1.1; }
+    .p-esquina b { font-family: var(--fuente-titulo); font-size: 4.4vh; letter-spacing: .14em; color: var(--acento); }
+    @media (max-aspect-ratio: 1/1) {
+      .pantalla { position: static; min-height: 100vh; }
+      body.modo-pantalla { overflow: auto; }
+      .p-cuerpo { flex-direction: column; }
+      .p-centro { margin: 0 0 4vh; }
+      .p-lado { width: auto; }
+      .p-esquina { position: static; align-self: flex-end; margin-top: 3vh; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"><div class="centro"><p class="sub">Abriendo el juego…</p></div></div>
+  <div class="aviso" id="aviso" role="status"></div>
+  <script type="module" src="juego.js"></script>
+</body>
+</html>

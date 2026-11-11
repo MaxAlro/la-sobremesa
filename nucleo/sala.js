@@ -104,6 +104,8 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
   const api = {
     uid: db.uid,
     local: db.local,
+    db,                        // acceso directo para los juegos (manos, acciones, mazos)
+    raiz: `salas/${codigo}`,
     estado() {
       if (!sala) return null;
       const jugadores = Object.entries(sala.jugadores).map(([uid, x]) => ({ uid, ...x }))

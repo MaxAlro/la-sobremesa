@@ -13,7 +13,7 @@ const inicial = (n) => esc(String(n || '?').trim().charAt(0).toUpperCase());
 
 const JUEGOS = [
   { id: 'marcador', nombre: 'Marcador', desc: 'Puntos por ronda; cada quien anota los suyos', ic: '#', pagina: '../marcador/' },
-  { id: 'llena-el-hueco', nombre: 'Llena el hueco', desc: 'Cartas · 4 a 9 jugadores · adultos', ic: '¿?', pronto: true }
+  { id: 'llena-el-hueco', nombre: 'Llena el hueco', desc: 'Cartas · 3 a 9 jugadores · adultos', ic: '¿?', pagina: '../juegos/llena-el-hueco/' }
 ];
 
 // Parámetros de prueba que se conservan al cambiar de dirección
@@ -90,6 +90,8 @@ function noExiste(codigo) {
 // ------------------------------------------------------------ pintar
 const ui = { sala: null, codigo: '', vista: '', editando: false, menu: false };
 const enlaceSala = () => direccion({ c: ui.codigo }, location.pathname);
+
+const enCurso = (st) => st.estado?.tipo === 'llena' && st.estado.fase !== 'fin' && st.estado.fase !== 'preparando';
 
 function pintar(st) {
   if (!st) return;
@@ -193,7 +195,7 @@ function pintarEspera(st) {
     </div>`;
   }).join('');
   const juegos = st.soyAnfitrion
-    ? `<span class="etiqueta">Elige el juego</span><div class="juegos">${JUEGOS.map((j) => `<button class="juego" data-accion="juego" data-juego="${j.id}" ${j.pronto ? 'disabled' : ''}><span class="ic">${j.ic}</span><div><strong>${j.nombre}</strong><span>${j.id === 'marcador' && st.estado?.tipo === 'marcador' ? 'Seguir con los puntos de esta sala' : j.desc}</span></div>${j.pronto ? '<span class="insignia">Pronto</span>' : '<span class="ir">Jugar ›</span>'}</button>`).join('')}</div>`
+    ? `<span class="etiqueta">Elige el juego</span><div class="juegos">${JUEGOS.map((j) => `<button class="juego" data-accion="juego" data-juego="${j.id}" ${j.pronto ? 'disabled' : ''}><span class="ic">${j.ic}</span><div><strong>${j.nombre}</strong><span>${j.id === 'marcador' && st.estado?.tipo === 'marcador' ? 'Seguir con los puntos de esta sala' : j.id === 'llena-el-hueco' && enCurso(st) ? 'Seguir con la partida' : j.desc}</span></div>${j.pronto ? '<span class="insignia">Pronto</span>' : '<span class="ir">Jugar ›</span>'}</button>`).join('')}</div>`
     : `<div class="panel espera">Esperando a que <b>${esc(st.nombreAnfitrion || 'el anfitrión')}</b> elija el juego…</div>`;
   $app.innerHTML = `<main class="jugador">
     ${barra(st)}
@@ -277,6 +279,8 @@ document.addEventListener('click', async (e) => {
     case 'juego': {
       // El marcador conserva sus puntos si ya se estaba jugando en esta sala
       if (b.dataset.juego === 'marcador' && st.estado?.tipo !== 'marcador') await s.iniciarJuego('marcador', marcadorInicial());
+      // Llena el hueco sigue la partida si quedó a medias; si no, empieza a prepararla
+      else if (b.dataset.juego === 'llena-el-hueco' && !enCurso(st)) await s.iniciarJuego('llena-el-hueco', { tipo: 'llena', fase: 'preparando' });
       else await s.elegirJuego(b.dataset.juego);
       break;
     }
