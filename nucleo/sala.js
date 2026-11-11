@@ -40,9 +40,27 @@ export async function crearSala({ comoPantalla = false } = {}) {
       if (actual) return undefined;
       return { creada: db.marcaTiempo(), actividad: db.marcaTiempo(), creador: db.uid };
     });
-    if (r.ok) return codigo;
+    if (r.ok) {
+      await db.set(`indice/${codigo}`, db.marcaTiempo()).catch(() => {});
+      limpiarSalasViejas(db).catch(() => {});
+      return codigo;
+    }
   }
   throw new Error('No se pudo crear la sala. Intenta de nuevo.');
+}
+
+// Cada vez que se crea una sala, se borran las que llevan 24 h sin actividad.
+// "indice" guarda solo el código y cuándo se creó cada sala, para poder encontrarlas.
+async function limpiarSalasViejas(db) {
+  const indice = (await db.get('indice')) || {};
+  const limite = db.ahora() - UN_DIA;
+  const viejas = Object.keys(indice).filter((c) => indice[c] < limite).slice(0, 25);
+  for (const codigo of viejas) {
+    const actividad = await db.get(`salas/${codigo}/publico/actividad`).catch(() => undefined);
+    if (actividad === undefined || (actividad && actividad >= limite)) continue;
+    if (actividad) await db.remove(`salas/${codigo}`).catch(() => {});
+    await db.remove(`indice/${codigo}`).catch(() => {});
+  }
 }
 
 export async function existeSala(codigo) {

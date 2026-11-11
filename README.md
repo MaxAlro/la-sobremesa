@@ -58,7 +58,8 @@ dispositivo desde el que quieras cargar o borrar mazos.
 Las manos de cada jugador, quién mandó qué carta y las cartas que faltan por salir solo las puede leer su dueño o el
 anfitrión, así que nadie puede espiar desde la consola del navegador.
 
-Una sala con 24 horas sin actividad se borra cuando una sala nueva saca el mismo código al azar.
+Las salas no se cierran solas al terminar: cada vez que alguien crea una sala nueva, se borran las que llevan 24 horas
+sin actividad. Para eso `indice` guarda el código y la hora de creación de cada sala.
 
 ### Cambiar colores
 
