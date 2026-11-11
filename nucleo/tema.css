@@ -1,0 +1,106 @@
+/*
+  La Sobremesa · tema
+  ------------------------------------------------------------
+  TODOS los colores y fuentes del sistema viven aquí.
+  Ningún otro archivo escribe colores a mano: siempre usa estas variables.
+
+  Para cambiar el acento en todo el sistema basta con cambiar
+  --acento y --acento-rgb (los mismos tres números, separados por comas).
+
+  Los temas alternos de abajo se activan con <html data-tema="...">
+  desde Ajustes en la página de inicio.
+*/
+
+:root {
+  /* Tapete (fondo), de más claro a más oscuro */
+  --fondo-1: #173438;
+  --fondo-2: #0f2427;
+  --fondo-3: #081517;
+
+  /* Marco de madera del monitor */
+  --madera-1: #3a2618;
+  --madera-2: #22160d;
+
+  /* Cartas de papel y su tinta */
+  --carta: #f3ecdf;
+  --tinta: #14191a;
+
+  /* Acento: código de sala, juez, botones principales, lo importante */
+  --acento: #ff8a6b;
+  --acento-rgb: 255, 138, 107;
+
+  /* Texto sobre el tapete */
+  --texto: #e6efec;
+  --suave: #93b8b7;
+
+  /* Significados (no son el acento) */
+  --listo: #a7e3c4;      /* listo, sumó puntos */
+  --destacado: #ffd166;  /* el mejor puntaje, récords */
+  --peligro: #ff7a8a;    /* borrar, errores */
+
+  /* Superficies y líneas translúcidas sobre el tapete */
+  --superficie: rgba(255, 255, 255, .05);
+  --superficie-2: rgba(255, 255, 255, .09);
+  --linea: rgba(255, 255, 255, .12);
+  --borde-acento: rgba(var(--acento-rgb), .55);
+  --brillo-acento: rgba(var(--acento-rgb), .18);
+
+  /* Colores para jugadores (se asignan en orden) */
+  --jugador-1: #ff8a6b;
+  --jugador-2: #7fd8b5;
+  --jugador-3: #ffd166;
+  --jugador-4: #9fb8ff;
+  --jugador-5: #f4a6d0;
+  --jugador-6: #c9a7ff;
+  --jugador-7: #b8e07a;
+  --jugador-8: #e9d3b0;
+  --jugador-9: #7fd0e8;
+  --jugador-10: #ffb38a;
+
+  /* Tipografía */
+  --fuente-titulo: "Zilla Slab", Georgia, "Times New Roman", serif;
+  --fuente-texto: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  color-scheme: dark;
+}
+
+/* ---------- Temas alternos (Ajustes → Tema) ---------- */
+
+[data-tema="azul"] {
+  --fondo-1: #1f2a3a; --fondo-2: #141b27; --fondo-3: #0b0f17;
+  --carta: #f3ead6; --tinta: #1a1712;
+  --acento: #e8b860; --acento-rgb: 232, 184, 96;
+  --texto: #efe6d2; --suave: #9fb0c6; --listo: #8fd1b4;
+}
+
+[data-tema="verde"] {
+  --fondo-1: #1d3a2e; --fondo-2: #13281f; --fondo-3: #0a1712;
+  --madera-1: #4a2e1a; --madera-2: #2b1a0e;
+  --carta: #f4ecd8; --tinta: #17140f;
+  --acento: #d9a441; --acento-rgb: 217, 164, 65;
+  --texto: #eee7d4; --suave: #9dbcab; --listo: #9be0b8;
+}
+
+[data-tema="vino"] {
+  --fondo-1: #3a1a24; --fondo-2: #271118; --fondo-3: #16090d;
+  --madera-1: #3b2416; --madera-2: #21140b;
+  --carta: #f6ecdc; --tinta: #1b1210;
+  --acento: #f0a868; --acento-rgb: 240, 168, 104;
+  --texto: #f3e6d8; --suave: #c7a1aa; --listo: #a6dcb8;
+}
+
+[data-tema="ciruela"] {
+  --fondo-1: #2c1f44; --fondo-2: #1d142e; --fondo-3: #100b1a;
+  --madera-1: #33221a; --madera-2: #1d130d;
+  --carta: #f3ecdf; --tinta: #1a1520;
+  --acento: #ffbe55; --acento-rgb: 255, 190, 85;
+  --texto: #efe8f5; --suave: #b3a3cc; --listo: #8fd9c0;
+}
+
+[data-tema="grafito"] {
+  --fondo-1: #2a2826; --fondo-2: #1c1b1a; --fondo-3: #111010;
+  --madera-1: #3d2a1d; --madera-2: #231810;
+  --carta: #efe9df; --tinta: #161412;
+  --acento: #d97b4a; --acento-rgb: 217, 123, 74;
+  --texto: #ece6dc; --suave: #aaa39a; --listo: #9fcfa6;
+}
