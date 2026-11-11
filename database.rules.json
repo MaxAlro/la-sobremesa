@@ -6,8 +6,12 @@
         "publico": {
           ".read": "auth != null",
           ".write": "auth != null && !data.exists() && $codigo.matches(/^[A-Z]{4}$/) && newData.child('creador').val() == auth.uid",
-          "creada": { ".validate": "newData.isNumber() && newData.val() <= now" },
-          "creador": { ".validate": "newData.isString()" },
+          "creada": {
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          },
+          "creador": {
+            ".validate": "newData.isString()"
+          },
           "actividad": {
             ".write": "auth != null && data.parent().exists()",
             ".validate": "newData.isNumber() && newData.val() <= now"
@@ -21,17 +25,39 @@
             ".validate": "newData.isString() && newData.val().length <= 40"
           },
           "estado": {
-            ".write": "auth != null && data.parent().child('anfitrion').val() == auth.uid"
+            ".write": "auth != null && data.parent().child('anfitrion').val() == auth.uid",
+            "revelado": {
+              ".write": "auth != null && data.parent().child('juez').val() == auth.uid && data.parent().child('tipo').val() == 'llena'",
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20"
+            },
+            "eleccion": {
+              ".write": "auth != null && data.parent().child('juez').val() == auth.uid && data.parent().child('tipo').val() == 'llena'",
+              ".validate": "newData.isString() && newData.val().length <= 12"
+            },
+            "siguiente": {
+              ".write": "auth != null && data.parent().child('juez').val() == auth.uid && data.parent().child('tipo').val() == 'llena'",
+              ".validate": "newData.isNumber()"
+            }
           },
           "jugadores": {
             "$uid": {
               ".write": "auth != null && data.parent().parent().exists() && ($uid == auth.uid || data.parent().parent().child('anfitrion').val() == auth.uid)",
               ".validate": "newData.hasChildren(['nombre', 'color'])",
-              "nombre": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24" },
-              "color": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)" },
-              "conectado": { ".validate": "newData.isBoolean()" },
-              "unido": { ".validate": "newData.isNumber()" },
-              "$otro": { ".validate": false }
+              "nombre": {
+                ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24"
+              },
+              "color": {
+                ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+              },
+              "conectado": {
+                ".validate": "newData.isBoolean()"
+              },
+              "unido": {
+                ".validate": "newData.isNumber()"
+              },
+              "$otro": {
+                ".validate": false
+              }
             }
           },
           "puntos": {
@@ -49,14 +75,44 @@
               ".validate": "newData.hasChildren(['desde'])"
             }
           },
-          "$otro": { ".validate": false }
+          "$otro": {
+            ".validate": false
+          }
         },
         "privado": {
           "$uid": {
             ".read": "auth != null && $uid == auth.uid",
             ".write": "auth != null && root.child('salas').child($codigo).child('publico/creada').exists() && ($uid == auth.uid || root.child('salas').child($codigo).child('publico/anfitrion').val() == auth.uid)"
           }
+        },
+        "secreto": {
+          ".read": "auth != null && root.child('salas').child($codigo).child('publico/anfitrion').val() == auth.uid",
+          ".write": "auth != null && root.child('salas').child($codigo).child('publico/anfitrion').val() == auth.uid"
+        },
+        "acciones": {
+          ".read": "auth != null && root.child('salas').child($codigo).child('publico/anfitrion').val() == auth.uid",
+          ".write": "auth != null && root.child('salas').child($codigo).child('publico/anfitrion').val() == auth.uid",
+          "$uid": {
+            ".write": "auth != null && $uid == auth.uid && root.child('salas').child($codigo).child('publico/jugadores').child(auth.uid).exists()"
+          }
         }
+      }
+    },
+    "claveAdmin": {
+      ".read": false,
+      ".write": false
+    },
+    "admins": {
+      "$uid": {
+        ".write": "auth != null && $uid == auth.uid",
+        ".validate": "newData.isString() && root.child('claveAdmin').exists() && newData.val() == root.child('claveAdmin').val()"
+      }
+    },
+    "mazos": {
+      ".read": "auth != null",
+      "$mazo": {
+        ".write": "auth != null && root.child('claveAdmin').exists() && root.child('admins').child(auth.uid).val() == root.child('claveAdmin').val()",
+        ".validate": "newData.hasChildren(['nombre', 'frases', 'respuestas']) && newData.child('nombre').isString() && newData.child('nombre').val().length <= 40"
       }
     }
   }

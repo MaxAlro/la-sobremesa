@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Mazos · Llena el hueco</title>
+  <script src="../../nucleo/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Zilla+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../../nucleo/tema.css">
+  <link rel="stylesheet" href="../../nucleo/base.css">
+  <style>
+    main { max-width: 720px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 18px; }
+    .panel { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.2rem; }
+    .sub { margin: 0; color: var(--suave); font-size: .9rem; }
+    .error { color: var(--peligro); }
+    .fila { display: flex; gap: 8px; }
+    .fila .campo { flex: 1; }
+    textarea.campo { min-height: 160px; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: .8rem; }
+    .mazo { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); }
+    .mazo div { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .mazo span { font-size: .8rem; color: var(--suave); }
+    .ejemplos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .ejemplos ul { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; color: var(--suave); }
+    @media (max-width: 560px) { .ejemplos { grid-template-columns: 1fr; } .mazo { flex-wrap: wrap; } }
+    code { background: var(--fondo-3); padding: 1px 5px; border-radius: 5px; }
+    .p { margin: 0; }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <a class="marca" href="../../">‹ La <em>Sobremesa</em></a>
+    <div><h1>Mazos de Llena el hueco</h1><p class="sub">Los mazos se guardan en Firebase, no en el código, así que solo los ve quien entra a jugar.</p></div>
+    <p class="sub oculto" id="notaLocal"></p>
+
+    <section class="panel">
+      <h2>Mazos guardados</h2>
+      <div id="lista"><p class="sub">Cargando…</p></div>
+    </section>
+
+    <section class="panel">
+      <h2>1. Clave de administrador</h2>
+      <p class="sub">Solo una vez en cada dispositivo desde el que quieras guardar o borrar mazos.</p>
+      <div class="fila"><input class="campo" id="clave" type="password" autocomplete="off" placeholder="Clave"><button class="btn" id="entrar">Entrar</button></div>
+      <p class="sub oculto" id="notaClave"></p>
+    </section>
+
+    <section class="panel">
+      <h2>2. Cargar un mazo</h2>
+      <p class="p sub">Un archivo CSV con columnas <code>tipo,texto</code> (tipo es <code>frase</code> o <code>respuesta</code>), o texto con las secciones <code># Frases</code> y <code># Respuestas</code>, una carta por línea. Marca el hueco con <code>____</code>.</p>
+      <input class="campo" id="nombre" maxlength="40" placeholder="Nombre del mazo, por ejemplo Mazo base">
+      <input class="campo" id="archivo" type="file" accept=".csv,.txt,text/csv,text/plain">
+      <textarea class="campo" id="texto" spellcheck="false" placeholder="…o pega aquí las cartas"></textarea>
+      <div class="fila"><button class="btn" id="revisar">Revisar</button><button class="btn pri" id="guardar" disabled>Guardar mazo</button></div>
+      <div class="oculto" id="previa"></div>
+      <p class="sub oculto" id="notaImportar"></p>
+    </section>
+  </main>
+  <script type="module" src="mazos.js"></script>
+</body>
+</html>

@@ -17,7 +17,14 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
   desde su celular y ve cómo van; el anfitrión tiene todas las funciones del marcador (rondas, jugadores sin celular,
   corregir cualquier puntaje, deshacer) y puede activar "Solo yo capturo". La tele muestra el marcador grande con el
   código para sumarse. Al volver a la sala los puntos se guardan para seguir después.
-- **Próximamente:** el juego de cartas "Llena el hueco".
+- **Llena el hueco** (`juegos/llena-el-hueco/`): juego de cartas para adultos, de 3 a 9 jugadores. Cada quien tiene
+  7 respuestas en su celular; un juez que rota lee la frase con hueco (en la tele, o arriba en cada celular si no hay
+  tele), los demás mandan su carta sin nombre, el juez las lee una por una y elige la más chistosa. Gana quien llegue
+  a los puntos acordados (7 de inicio). Opciones: cartas en blanco y cambiar la mano por un punto. Al final, los
+  puntos se pueden llevar al marcador.
+- **Mazos** (`juegos/llena-el-hueco/mazos.html`, también desde Ajustes): las cartas viven en Firebase, no en el
+  código. Se cargan como CSV (`tipo,texto`) o texto con secciones `# Frases` y `# Respuestas`; el hueco se marca con
+  `____`. Para guardar o borrar mazos hace falta la clave de administrador (ver abajo).
 
 ## Cómo está hecho
 
@@ -33,6 +40,7 @@ nucleo/config.js    datos del proyecto de Firebase (no son secretos)
 nucleo/datos.js     capa de datos: Firebase o modo de prueba local
 nucleo/sala.js      crear, entrar, roles, anfitrión, reconexión
 sala/               página de la sala (vista de jugador y de pantalla)
+juegos/             cada juego en su carpeta; el celular del anfitrión lleva las reglas
 database.rules.json reglas de seguridad de Firebase
 ```
 
@@ -42,6 +50,13 @@ Las salas usan Firebase Realtime Database con acceso anónimo, en el plan gratui
 Para conectarlo: crea el proyecto, activa *Authentication → Anónimo* y *Realtime Database*,
 pega el bloque `firebaseConfig` en `nucleo/config.js` y copia `database.rules.json` en
 *Realtime Database → Reglas*. Si `FIREBASE_CONFIG` es `null`, la página dice que las salas vienen pronto.
+
+**Clave de administrador de mazos:** en la consola, *Realtime Database → Datos*, agrega en la raíz el campo
+`claveAdmin` con la clave que quieras (texto). Nadie puede leerla. En la página de mazos, escríbela una vez en cada
+dispositivo desde el que quieras cargar o borrar mazos.
+
+Las manos de cada jugador, quién mandó qué carta y las cartas que faltan por salir solo las puede leer su dueño o el
+anfitrión, así que nadie puede espiar desde la consola del navegador.
 
 Una sala con 24 horas sin actividad se borra cuando una sala nueva saca el mismo código al azar.
 
