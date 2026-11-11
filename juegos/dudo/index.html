@@ -119,6 +119,26 @@
     .mis-dados { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 320px; font-size: 76px; }
     .carta-secreta { min-height: 300px; }
 
+    .cifras { position: sticky; top: max(8px, env(safe-area-inset-top)); z-index: 6; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; }
+    .cifra { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 6px; border-radius: 14px; background: var(--fondo-2); border: 1px solid var(--linea); text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+    .cifra b { font-family: var(--fuente-titulo); font-weight: 700; font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+    .cifra span { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--suave); margin-top: 3px; }
+    .cifra.mesa { border: 2px solid var(--acento); }
+    .cifra.mesa b { font-size: 3rem; color: var(--acento); }
+    .comparar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin: 10px 0 4px; }
+    .comparar .lado { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; background: var(--superficie-2); text-align: center; }
+    .comparar .lado > span { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--suave); }
+    .comparar .apuesta.grande { font-size: 2.8rem; color: var(--texto); }
+    .comparar .hay { border: 2px solid var(--acento); }
+    .comparar .hay b { font-family: var(--fuente-titulo); font-weight: 700; font-size: 3.4rem; line-height: 1; color: var(--acento); }
+    .comparar .hay small { color: var(--suave); font-size: .78rem; }
+    .comparar .signo { font-family: var(--fuente-titulo); font-size: 2.4rem; color: var(--suave); }
+    .resumen .veredicto { font-size: 2rem; margin-top: 4px; }
+    .resumen .veredicto.bien { color: var(--listo); }
+    .mano.suma { justify-content: flex-end; background: none; border-top: 1px solid var(--linea); border-radius: 0; padding-top: 8px; }
+    .mano.suma > b { width: auto; color: var(--suave); font-weight: 700; }
+    .mano.suma .cuenta { font-size: 2rem; }
+    .pantalla .mano.suma .cuenta { font-size: 6vh; }
     .banda { padding: 10px 14px; border-radius: 12px; background: var(--brillo-acento); border: 1px solid var(--acento); font-weight: 600; }
     .en-juego { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
     .te-toca { padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; background: var(--brillo-acento); border: 2px solid var(--acento); }
