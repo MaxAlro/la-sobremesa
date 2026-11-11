@@ -421,6 +421,25 @@ function tic() {
   const falta = e.limite - ui.sala.db.ahora();
   if (st.soyAnfitrion && falta <= 0) motor();
   document.querySelectorAll('[data-reloj]').forEach((x) => { x.textContent = reloj(falta); });
+  const parte = Math.max(0, Math.min(1, falta / duracion(e)));
+  document.querySelectorAll('[data-barra]').forEach((x) => { x.style.width = `${parte * 100}%`; });
+  document.querySelectorAll('[data-reloj-caja]').forEach((x) => { x.className = `${x.dataset.relojCaja} ${claseReloj(falta)}`; });
+  // Sin tele, el celular avisa con una vibración cuando quedan 30 y 10 segundos
+  if (!PANTALLA && enRonda(st, e)) {
+    const marca = falta <= 10000 ? 10 : falta <= 30000 ? 30 : null;
+    const k = `${e.reparto}-${e.votacion?.etapa || 1}-${marca}`;
+    if (marca && falta > 0 && ui.vibro !== k) { ui.vibro = k; try { navigator.vibrate?.(marca === 10 ? [150, 80, 150] : 200); } catch {} }
+  }
+}
+// Cuánto dura el reloj de esta votación (el desempate es más corto) y cómo se ve según lo que falta
+const duracion = (e) => ((e.votacion?.etapa === 2 ? DESEMPATE : e.opciones?.tiempo || 0) * 1000) || 1;
+const claseReloj = (falta) => (falta <= 10000 ? 'poco ya' : falta <= 30000 ? 'poco' : '');
+function relojGrande(e) {
+  const falta = e.limite - ui.sala.db.ahora();
+  return `<div class="reloj-grande ${claseReloj(falta)}" data-reloj-caja="reloj-grande" role="timer" aria-label="Tiempo para votar">
+    <div class="arriba"><span>${e.votacion?.etapa === 2 ? 'Para el desempate' : 'Para discutir y votar'}</span><b data-reloj>${reloj(falta)}</b></div>
+    <div class="barra-tiempo"><i data-barra style="width:${Math.max(0, Math.min(1, falta / duracion(e))) * 100}%"></i></div>
+  </div>`;
 }
 
 // ------------------------------------------------------------ pintar
@@ -588,7 +607,7 @@ function votando(st, e) {
     : req > 1 ? `Hay ${e.n} impostores: elige a ${req} personas.` : 'Discutan y voten quién creen que es el impostor.';
   const listo = sel.length === req, mismo = yaVote && listo && igual([...sel].sort(), [...(ui.enviado || [])].sort());
   const etiquetaVoto = mismo ? `Votaste por ${esc(nombres(st, sel))}` : !listo ? (req > 1 ? `Elige a ${req}` : 'Elige a alguien') : `${yaVote ? 'Cambiar mi voto a' : 'Votar por'} ${esc(nombres(st, sel))}`;
-  return `<div class="cabeza-fila"><div class="cabeza"><span class="etiqueta">${e.limite ? `Quedan <span data-reloj>${reloj(e.limite - ui.sala.db.ahora())}</span>` : categoria(e)}</span><h2 class="titulo">${titulo}</h2></div>
+  return `${e.limite ? relojGrande(e) : ''}<div class="cabeza-fila"><div class="cabeza"><span class="etiqueta">${categoria(e)}</span><h2 class="titulo">${titulo}</h2></div>
       <span class="pildora">Votaron ${Object.keys(votaron).length} de ${presentes.length}</span></div>
     <p class="sub">${sub}</p>
     <div class="opciones">${botones}</div>
@@ -735,7 +754,7 @@ function pintarPantalla(st, e) {
     cuerpo = `<div class="p-pie" style="margin:0 0 4vh"><div><span class="etiqueta">${vot.etapa === 2 ? 'Desempate' : 'Discutan y voten'}</span>
         <h1 class="p-titulo" style="font-size:11vh">${vot.etapa === 2 ? `Otra vez: ${esc(nombres(st, cands))}` : e.n > 1 ? '¿Quiénes son los impostores?' : '¿Quién es el impostor?'}</h1>
         <p class="p-sub">${vot.etapa === 2 ? 'Hubo empate. Se vota solo entre los empatados.' : 'Pueden cambiar su voto hasta que hayan votado todos.'}</p></div>
-      ${e.limite ? `<div class="p-reloj"><b data-reloj>${reloj(e.limite - ui.sala.db.ahora())}</b><small>para discutir</small></div>` : ''}</div>
+      ${e.limite ? `<div class="p-reloj ${claseReloj(e.limite - ui.sala.db.ahora())}" data-reloj-caja="p-reloj"><b data-reloj>${reloj(e.limite - ui.sala.db.ahora())}</b><small>para discutir</small></div>` : ''}</div>
       <div class="p-pie">${fila((u) => (votaron[u] ? { ok: true, t: 'Ya votó' } : { ok: false, t: 'Pensando…' }))}<span class="p-pildora">Votaron ${Object.keys(votaron).length} de ${presentes.length}</span></div>`;
     esquina = false;
   } else if (e.fase === 'adivinando') {
