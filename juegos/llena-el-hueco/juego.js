@@ -477,10 +477,16 @@ function revelando(st, e) {
     return `${nota}<span class="etiqueta">Elige la ganadora</span><div class="opciones-ganadora">${rs.map((r) => `<button class="frase-carta opcion ${ui.eleccion === r.id ? 'sel' : ''}" data-accion="elegir" data-id="${esc(r.id)}"><p>${llenar(e.frase, lista(r.textos))}</p></button>`).join('')}</div>
       <div class="pie-fijo"><button class="btn pri grande" data-accion="confirmar" ${ui.eleccion ? '' : 'disabled'}>Elegir esta</button></div>`;
   }
-  const vistas = rs.slice(0, k);
-  const eligiendo = k > n;
-  return `${fraseCarta(e, [])}<div class="panel espera"><b>${esc(nombre(st, e.juez))} ${eligiendo ? 'está eligiendo la ganadora…' : 'está leyendo las respuestas.'}</b>${eligiendo ? '' : `<p class="sub">${k} de ${n}</p>`}</div>
-    <div class="reveladas">${vistas.map((r) => `<div class="frase-carta chica"><p>${llenar(e.frase, lista(r.textos))}</p></div>`).reverse().join('')}</div>`;
+  // Los demás ven lo mismo que el juez: la respuesta que se está leyendo en grande y, al final, todas
+  const quien = esc(nombre(st, e.juez));
+  if (k <= n) {
+    const actual = k > 0 ? rs[k - 1] : null;
+    const texto = k === 0 ? `${quien} va a leer ${n === 1 ? 'la respuesta' : `las ${n} respuestas`}.` : `${quien} está leyendo · respuesta ${k} de ${n}${k === n ? ', la última' : ''}`;
+    return `${actual ? fraseCarta(e, lista(actual.textos), 'grande') : fraseCarta(e, [])}
+      <p class="sub centrado">${texto}</p>`;
+  }
+  return `<span class="etiqueta">Todas las respuestas</span><div class="opciones-ganadora">${rs.map((r) => `<div class="frase-carta"><p>${llenar(e.frase, lista(r.textos))}</p></div>`).join('')}</div>
+    <div class="panel espera"><b>${quien} está eligiendo la ganadora…</b></div>`;
 }
 
 function ganador(st, e) {
