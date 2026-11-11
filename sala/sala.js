@@ -15,7 +15,8 @@ const JUEGOS = [
   { id: 'marcador', nombre: 'Marcador', desc: 'Puntos por ronda; cada quien anota los suyos', ic: '#', pagina: '../marcador/' },
   { id: 'llena-el-hueco', nombre: 'Llena el hueco', desc: 'Cartas · 3 a 9 jugadores · adultos', ic: '¿?', pagina: '../juegos/llena-el-hueco/', tipo: 'llena' },
   { id: 'basta', nombre: 'Basta', desc: 'Palabras · 2 a 9 jugadores · todas las edades', ic: 'B', pagina: '../juegos/basta/', tipo: 'basta' },
-  { id: 'impostor', nombre: 'El impostor', desc: 'Deducción · 3 a 9 jugadores · todas las edades', ic: '?', pagina: '../juegos/impostor/', tipo: 'impostor' }
+  { id: 'impostor', nombre: 'El impostor', desc: 'Deducción · 3 a 9 jugadores · todas las edades', ic: '?', pagina: '../juegos/impostor/', tipo: 'impostor' },
+  { id: 'dudo', nombre: 'Dudo', desc: 'Dados y blofeo · 2 a 9 jugadores · todas las edades', ic: 'D', pagina: '../juegos/dudo/', tipo: 'dudo' }
 ];
 
 // Parámetros de prueba que se conservan al cambiar de dirección

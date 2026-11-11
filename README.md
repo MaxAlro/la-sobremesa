@@ -40,6 +40,13 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
   *Clásico* (el impostor sabe que lo es y solo ve el mazo con su descripción) y *Palabra parecida* (recibe otra
   palabra de la misma familia y no sabe que es el impostor). Con 7 o más se puede jugar con 2 impostores. Al
   terminar, cada ronda pasa al marcador con su palabra.
+- **Dudo** (`juegos/dudo/`): dados ocultos y blofeo para 2 a 9 jugadores. Cada quien ve sus dados solo en su
+  celular, manteniendo el dedo encima. Por turnos se apuesta cuántos dados de un número hay en toda la mesa; no hay
+  comodín. Para seguir: más dados de cualquier número, o la misma cantidad con otro número que nadie haya dicho con
+  esa cantidad en la ronda. Quien no cree la apuesta dice ¡Dudo! y pierde un dado quien se equivocó. Opcionales:
+  ¡Calzo! (decir que hay exactamente lo apostado: si atinas recuperas un dado) y la ronda de un dado (la primera vez
+  que alguien queda con uno, nadie puede cambiar de número). El anfitrión acomoda el orden de la mesa y elige 5, 4 o
+  3 dados. Puntos por lugar (el ganador, jugadores menos uno; quien cae primero, 0); cada partida pasa al marcador.
 - **Mazos de El impostor** (`juegos/impostor/mazos.html`, también desde Ajustes): seis mazos vienen incluidos
   (`juegos/impostor/mazos-base.js`). Los propios se guardan en Firebase (`palabras/<id>`): nombre, descripción y
   palabras, cada una con su descripción corta y, si se quiere, su familia de palabras parecidas. Se escriben como
