@@ -1,0 +1,54 @@
+{
+  "rules": {
+    "salas": {
+      "$codigo": {
+        ".write": "auth != null && data.exists() && !newData.exists() && (!data.child('publico/actividad').exists() || data.child('publico/actividad').val() < now - 86400000)",
+        "publico": {
+          ".read": "auth != null",
+          ".write": "auth != null && !data.exists() && $codigo.matches(/^[A-Z]{4}$/) && newData.child('creador').val() == auth.uid",
+          "creada": { ".validate": "newData.isNumber() && newData.val() <= now" },
+          "creador": { ".validate": "newData.isString()" },
+          "actividad": {
+            ".write": "auth != null && data.parent().exists()",
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          },
+          "anfitrion": {
+            ".write": "auth != null && data.parent().exists() && (data.val() == auth.uid || (newData.val() == auth.uid && data.parent().child('jugadores').child(auth.uid).exists() && (!data.exists() || data.parent().child('jugadores').child(data.val()).child('conectado').val() != true)))",
+            ".validate": "newData.isString() && newData.parent().child('jugadores').child(newData.val()).exists()"
+          },
+          "juego": {
+            ".write": "auth != null && data.parent().child('anfitrion').val() == auth.uid",
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "estado": {
+            ".write": "auth != null && data.parent().child('anfitrion').val() == auth.uid"
+          },
+          "jugadores": {
+            "$uid": {
+              ".write": "auth != null && data.parent().parent().exists() && ($uid == auth.uid || data.parent().parent().child('anfitrion').val() == auth.uid)",
+              ".validate": "newData.hasChildren(['nombre', 'color'])",
+              "nombre": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24" },
+              "color": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)" },
+              "conectado": { ".validate": "newData.isBoolean()" },
+              "unido": { ".validate": "newData.isNumber()" },
+              "$otro": { ".validate": false }
+            }
+          },
+          "pantallas": {
+            "$uid": {
+              ".write": "auth != null && $uid == auth.uid && data.parent().parent().exists()",
+              ".validate": "newData.hasChildren(['desde'])"
+            }
+          },
+          "$otro": { ".validate": false }
+        },
+        "privado": {
+          "$uid": {
+            ".read": "auth != null && $uid == auth.uid",
+            ".write": "auth != null && root.child('salas').child($codigo).child('publico/creada').exists() && ($uid == auth.uid || root.child('salas').child($codigo).child('publico/anfitrion').val() == auth.uid)"
+          }
+        }
+      }
+    }
+  }
+}

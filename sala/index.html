@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Sala · La Sobremesa</title>
+  <script src="../nucleo/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Zilla+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../nucleo/tema.css">
+  <link rel="stylesheet" href="../nucleo/base.css">
+  <script src="../nucleo/vendor/qrcode.js"></script>
+  <style>
+    /* ---------- Vista de jugador (celular, tablet, laptop) ---------- */
+    .jugador { max-width: 560px; margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 18px; }
+    .barra { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .barra .marca { font-size: 1.05rem; }
+    .barra-der { display: flex; align-items: center; gap: 8px; }
+    .codigo-mini { font-family: var(--fuente-titulo); font-weight: 700; color: var(--acento); letter-spacing: .12em; }
+    .rol { border: 0; border-radius: 999px; padding: 5px 11px; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; background: var(--brillo-acento); color: var(--acento); }
+    .rol.discreto { background: var(--superficie-2); color: var(--suave); }
+    .menu.arriba { top: auto; bottom: calc(100% + 6px); }
+    .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 220px; display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: 12px; background: var(--fondo-2); border: 1px solid var(--linea); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+    .menu button { text-align: left; border: 0; background: none; padding: 10px 12px; border-radius: 8px; font-weight: 600; }
+    .menu button:hover { background: var(--superficie-2); }
+    .menu .peligro { color: var(--peligro); }
+    .envoltura-rol { position: relative; }
+    h1.titulo { font-size: 1.7rem; }
+    .sub { margin: 4px 0 0; color: var(--suave); }
+
+    .invitar { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+    .qr { width: 168px; height: 168px; background: var(--carta); border-radius: 12px; padding: 10px; }
+    .qr canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+    .codigo-grande { font-family: var(--fuente-titulo); font-weight: 700; font-size: 2.6rem; letter-spacing: .2em; padding-left: .2em; line-height: 1; color: var(--acento); }
+    .fila-botones { display: flex; gap: 8px; width: 100%; }
+    .fila-botones .btn { flex: 1; }
+    .invitar-corto { padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+    .invitar-corto .codigo-mini { font-size: 1.3rem; }
+    .invitar-corto .texto { color: var(--suave); font-size: .85rem; flex: 1; }
+
+    .lista { display: flex; flex-direction: column; gap: 8px; }
+    .persona { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); }
+    .persona.yo { border-color: var(--borde-acento); }
+    .persona.fuera { opacity: .5; }
+    .av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; flex: none; font-family: var(--fuente-titulo); font-weight: 700; color: var(--tinta); }
+    .persona .nom { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+    .persona .nom b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .persona .nom small { color: var(--suave); font-size: .75rem; }
+    .insignia { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--brillo-acento); color: var(--acento); flex: none; }
+    .acc { display: flex; gap: 4px; flex: none; }
+    .acc .btn { padding: 5px 8px; font-size: .72rem; }
+
+    .juegos { display: flex; flex-direction: column; gap: 8px; }
+    .juego { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); text-align: left; width: 100%; color: var(--texto); }
+    .juego:disabled { opacity: .55; cursor: default; }
+    .juego .ic { width: 40px; height: 40px; border-radius: 9px; display: grid; place-items: center; background: var(--carta); color: var(--tinta); font-family: var(--fuente-titulo); font-weight: 700; flex: none; }
+    .juego div { display: flex; flex-direction: column; line-height: 1.25; flex: 1; }
+    .juego strong { font-family: var(--fuente-titulo); font-size: 1.05rem; }
+    .juego span { font-size: .8rem; color: var(--suave); }
+    .espera { padding: 16px; text-align: center; color: var(--suave); }
+    .espera b { color: var(--texto); }
+
+    .form { display: flex; flex-direction: column; gap: 12px; }
+    .colores { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .color { aspect-ratio: 1; border-radius: 50%; border: 0; position: relative; font-family: var(--fuente-titulo); font-weight: 700; color: var(--tinta); font-size: .85rem; }
+    .color[aria-pressed="true"] { outline: 3px solid var(--texto); outline-offset: 3px; }
+    .color:disabled { opacity: .35; cursor: default; }
+    .enlace { background: none; border: 0; color: var(--suave); text-decoration: underline; padding: 6px; font-size: .88rem; }
+    .error { color: var(--peligro); margin: 0; font-size: .9rem; }
+    .aviso-local { font-size: .8rem; color: var(--suave); text-align: center; border: 1px dashed var(--linea); border-radius: 10px; padding: 8px; }
+    .centro { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 24px; }
+
+    /* ---------- Vista de pantalla (tele, laptop, Chromecast) ----------
+       CSS conservador para navegadores de tele: flexbox, vw/vh, sin efectos pesados. */
+    body.modo-pantalla { overflow: hidden; }
+    .pantalla { position: fixed; inset: 0; display: flex; flex-direction: column; padding: 4vh 4vw; gap: 3vh; }
+    .p-arriba { display: flex; justify-content: space-between; align-items: center; font-size: 2.2vh; }
+    .p-arriba .marca { font-size: 3vh; }
+    .p-cuerpo { flex: 1; display: flex; gap: 4vw; min-height: 0; }
+    .p-unirse { flex: 0 0 38%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; text-align: center; background: var(--fondo-3); border: 2px solid var(--borde-acento); border-radius: 2vh; box-shadow: 0 0 5vh var(--brillo-acento); padding: 3vh; }
+    .p-unirse .qr { width: 30vh; height: 30vh; padding: 1.4vh; border-radius: 1.4vh; }
+    .p-unirse .etq { font-size: 1.9vh; letter-spacing: .14em; text-transform: uppercase; color: var(--suave); font-weight: 700; }
+    .p-unirse .cod { font-family: var(--fuente-titulo); font-weight: 700; font-size: 13vh; line-height: 1; letter-spacing: .18em; padding-left: .18em; color: var(--acento); }
+    .p-unirse .url { font-size: 2vh; color: var(--suave); }
+    .p-unirse .url b { color: var(--texto); }
+    .p-mesa { flex: 1; display: flex; flex-direction: column; gap: 2vh; min-width: 0; }
+    .p-mesa .etq { font-size: 1.9vh; letter-spacing: .14em; text-transform: uppercase; color: var(--suave); font-weight: 700; }
+    .asientos { display: flex; flex-wrap: wrap; gap: 1.6vh; }
+    .asiento { width: calc(33.33% - 1.1vh); display: flex; align-items: center; gap: 1.4vh; padding: 1.4vh 1.6vh; border-radius: 1.4vh; background: var(--superficie); font-size: 2.8vh; font-weight: 600; overflow: hidden; }
+    .asiento .av { width: 5vh; height: 5vh; font-size: 2.4vh; }
+    .asiento span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .asiento.libre { background: transparent; border: 2px dashed var(--linea); color: var(--suave); font-weight: 400; }
+    .asiento.fuera { opacity: .45; }
+    .p-estado { margin-top: auto; display: flex; align-items: center; gap: 2vh; padding: 2vh 2.4vh; border-radius: 1.6vh; background: var(--brillo-acento); border: 2px solid var(--borde-acento); }
+    .p-estado .mini { width: 5vh; height: 7vh; border-radius: .8vh; background: var(--carta); transform: rotate(-6deg); flex: none; }
+    .p-estado strong { display: block; font-family: var(--fuente-titulo); font-size: 3.2vh; }
+    .p-estado span { font-size: 2vh; color: var(--suave); }
+    .p-esquina { position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); opacity: .35; }
+    .p-esquina:hover, .p-esquina:focus-within { opacity: 1; }
+    @media (max-aspect-ratio: 1/1) {
+      .pantalla { position: static; min-height: 100vh; }
+      body.modo-pantalla { overflow: auto; }
+      .p-cuerpo { flex-direction: column; }
+      .asiento { width: calc(50% - 1vh); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"><div class="centro"><p class="sub">Abriendo la sala…</p></div></div>
+  <div class="aviso" id="aviso" role="status"></div>
+  <script type="module" src="sala.js"></script>
+</body>
+</html>

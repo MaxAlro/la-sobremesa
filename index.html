@@ -82,17 +82,18 @@
 
       <div class="grupo">
         <span class="etiqueta">Salas</span>
-        <div class="panel sala">
+        <div class="panel sala" id="salas">
           <label class="etiqueta" for="c1">Entrar con código</label>
-          <div class="codigo" aria-label="Código de la sala">
-            <input id="c1" maxlength="1" disabled aria-label="Letra 1">
-            <input maxlength="1" disabled aria-label="Letra 2">
-            <input maxlength="1" disabled aria-label="Letra 3">
-            <input maxlength="1" disabled aria-label="Letra 4">
+          <div class="codigo" id="codigo" aria-label="Código de la sala">
+            <input id="c1" maxlength="1" autocapitalize="characters" autocomplete="off" disabled aria-label="Letra 1">
+            <input maxlength="1" autocapitalize="characters" autocomplete="off" disabled aria-label="Letra 2">
+            <input maxlength="1" autocapitalize="characters" autocomplete="off" disabled aria-label="Letra 3">
+            <input maxlength="1" autocapitalize="characters" autocomplete="off" disabled aria-label="Letra 4">
           </div>
-          <button class="btn pri grande" type="button" disabled>Entrar como jugador</button>
-          <button class="btn sec grande" type="button" disabled>Abrir pantalla de juego</button>
-          <p class="nota">Las salas para jugar desde varios celulares llegan en la siguiente versión. Mientras tanto, el marcador funciona en este dispositivo como siempre.</p>
+          <button class="btn pri grande" type="button" id="entrarBtn" disabled>Entrar como jugador</button>
+          <button class="btn sec grande" type="button" id="crearBtn" disabled>Crear sala desde este celular</button>
+          <button class="btn sec grande" type="button" id="pantallaBtn" disabled>Abrir pantalla de juego</button>
+          <p class="nota" id="notaSalas">Las salas para jugar desde varios celulares llegan en la siguiente versión. Mientras tanto, el marcador funciona en este dispositivo como siempre.</p>
         </div>
       </div>
     </div>
@@ -137,6 +138,45 @@
       document.getElementById('ajustesBtn').onclick = function () { pintar(); dlg.showModal(); };
       document.getElementById('cerrarAjustes').onclick = function () { dlg.close(); };
     })();
+  </script>
+
+  <script type="module">
+    import { hayFirebase } from './nucleo/datos.js';
+    const q = new URLSearchParams(location.search);
+    if (hayFirebase() || q.has('local')) {
+      const PRUEBA = ['local', 'sdk', 'emulador', 'emuauth'];
+      const ir = (extra) => {
+        const u = new URL('sala/', location.href);
+        for (const k of PRUEBA) if (q.has(k)) u.searchParams.set(k, q.get(k));
+        for (const [k, v] of Object.entries(extra)) u.searchParams.set(k, v);
+        location.href = u.toString();
+      };
+      const cajas = [...document.querySelectorAll('#codigo input')];
+      const entrar = document.getElementById('entrarBtn');
+      const codigo = () => cajas.map((c) => c.value).join('');
+      const listo = () => /^[A-Z]{4}$/.test(codigo());
+      const revisar = () => { entrar.disabled = !listo(); document.getElementById('pantallaBtn').textContent = listo() ? `Usar como pantalla de ${codigo()}` : 'Abrir pantalla de juego'; };
+      const escribir = (texto, desde = 0) => {
+        const letras = texto.toUpperCase().replace(/[^A-Z]/g, '').split('');
+        letras.slice(0, 4 - desde).forEach((l, i) => { cajas[desde + i].value = l; });
+        cajas[Math.min(desde + letras.length, 3)].focus();
+        revisar();
+      };
+      cajas.forEach((c, i) => {
+        c.disabled = false;
+        c.addEventListener('input', () => { const v = c.value; c.value = ''; if (v) escribir(v, i); else revisar(); });
+        c.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !c.value && i > 0) { cajas[i - 1].value = ''; cajas[i - 1].focus(); revisar(); e.preventDefault(); } if (e.key === 'Enter' && listo()) entrar.click(); });
+        c.addEventListener('paste', (e) => { e.preventDefault(); escribir(e.clipboardData.getData('text'), 0); });
+      });
+      ['crearBtn', 'pantallaBtn'].forEach((id) => { document.getElementById(id).disabled = false; });
+      entrar.onclick = () => listo() && ir({ c: codigo() });
+      document.getElementById('crearBtn').onclick = () => ir({ nueva: 'jugador' });
+      document.getElementById('pantallaBtn').onclick = () => ir(listo() ? { c: codigo(), rol: 'pantalla' } : { nueva: 'pantalla' });
+      document.getElementById('notaSalas').textContent = q.has('local') && !hayFirebase()
+        ? 'Modo de prueba: las salas solo funcionan entre pestañas de este navegador.'
+        : 'En la tele o la laptop usa "Abrir pantalla de juego". En el celular, entra con el código o crea una sala.';
+      if (q.get('c')) escribir(q.get('c'));
+    }
   </script>
 </body>
 </html>

@@ -9,7 +9,11 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
 - **Marcador** (`marcador/`): marcador por rondas para cualquier juego de mesa. Es la evolución de
   [marcador-rondas](https://github.com/MaxAlro/marcador-rondas), con todas sus funciones. Si se abre en el mismo
   navegador donde se usó el marcador anterior, recupera la partida guardada automáticamente.
-- **Próximamente:** salas con código para jugar desde varios celulares y el juego de cartas "Llena el hueco".
+- **Salas** (`sala/`): cada sala tiene un código de 4 letras y un QR. Cada dispositivo elige su papel:
+  *jugador* (celular, tablet o laptop) o *pantalla* (tele, Chromecast o laptop conectada a la tele). La pantalla es
+  opcional: sin ella, el código y lo común se ven en todos los celulares. El primer jugador es el anfitrión; puede pasar
+  el control o sacar a alguien, y si se desconecta, otro toma el control a los 8 segundos.
+- **Próximamente:** el marcador como sala y el juego de cartas "Llena el hueco".
 
 ## Cómo está hecho
 
@@ -21,7 +25,21 @@ marcador/           marcador por rondas
 nucleo/tema.css     TODOS los colores y fuentes, y los temas alternos
 nucleo/tema.js      aplica el tema elegido en cada dispositivo
 nucleo/base.css     botones, campos, paneles, cartas
+nucleo/config.js    datos del proyecto de Firebase (no son secretos)
+nucleo/datos.js     capa de datos: Firebase o modo de prueba local
+nucleo/sala.js      crear, entrar, roles, anfitrión, reconexión
+sala/               página de la sala (vista de jugador y de pantalla)
+database.rules.json reglas de seguridad de Firebase
 ```
+
+### Firebase
+
+Las salas usan Firebase Realtime Database con acceso anónimo, en el plan gratuito (Spark).
+Para conectarlo: crea el proyecto, activa *Authentication → Anónimo* y *Realtime Database*,
+pega el bloque `firebaseConfig` en `nucleo/config.js` y copia `database.rules.json` en
+*Realtime Database → Reglas*. Mientras `FIREBASE_CONFIG` sea `null`, la página dice que las salas vienen pronto.
+
+Una sala con 24 horas sin actividad se borra cuando una sala nueva saca el mismo código al azar.
 
 ### Cambiar colores
 
@@ -36,3 +54,6 @@ python3 -m http.server 8000
 ```
 
 y abre http://localhost:8000
+
+Para probar salas sin Firebase, agrega `?local` a la dirección (http://localhost:8000/?local) y abre varias
+pestañas: cada pestaña cuenta como un dispositivo distinto.
