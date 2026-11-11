@@ -30,6 +30,20 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
   y/ll, h muda, letras dobles, y una letra de diferencia en palabras largas); el anfitrión puede juntar o separar a
   mano. Categorías, número de rondas, tiempo límite y letras difíciles se eligen al preparar. Al final, cada ronda pasa
   al marcador con su letra.
+- **El impostor** (`juegos/impostor/`): juego de deducción para 3 a 9 jugadores, con poca pantalla. Todos reciben
+  en su celular la misma palabra secreta, menos el impostor. La tarjeta se ve solo mientras se mantiene el dedo encima,
+  y tapada se ve igual en todos los celulares. Por turnos (al azar, pero el impostor nunca empieza) cada quien dice
+  una pista en voz alta; luego discuten y votan desde el celular, con reloj opcional. Si hay empate se vota otra vez
+  solo entre los empatados; si sigue, el impostor se salva. Si lo atrapan, tiene un intento para adivinar la palabra
+  (se perdonan faltas de ortografía y el anfitrión puede corregir). Puntos: el impostor se salva +3; lo atrapan pero
+  adivina +2; lo atrapan y falla, +1 para cada uno de los demás y +1 extra a quien votó por el impostor. Dos modos:
+  *Clásico* (el impostor sabe que lo es y solo ve el mazo con su descripción) y *Palabra parecida* (recibe otra
+  palabra de la misma familia y no sabe que es el impostor). Con 7 o más se puede jugar con 2 impostores. Al
+  terminar, cada ronda pasa al marcador con su palabra.
+- **Mazos de El impostor** (`juegos/impostor/mazos.html`, también desde Ajustes): seis mazos vienen incluidos
+  (`juegos/impostor/mazos-base.js`). Los propios se guardan en Firebase (`palabras/<id>`): nombre, descripción y
+  palabras, cada una con su descripción corta y, si se quiere, su familia de palabras parecidas. Se escriben como
+  texto (`Palabra: descripción`, con `[Familia]` para agrupar) o como CSV (`palabra,descripcion,familia`).
 - **Mazos** (`juegos/llena-el-hueco/mazos.html`, también desde Ajustes): las cartas viven en Firebase, no en el
   código. Se cargan como CSV (`tipo,texto`) o texto con secciones `# Frases` y `# Respuestas`; el hueco se marca con
   `____`. Para guardar o borrar mazos hace falta la clave de administrador (ver abajo).
@@ -47,6 +61,7 @@ nucleo/base.css     botones, campos, paneles, cartas
 nucleo/config.js    datos del proyecto de Firebase (no son secretos)
 nucleo/datos.js     capa de datos: Firebase o modo de prueba local
 nucleo/sala.js      crear, entrar, roles, anfitrión, reconexión
+nucleo/texto.js     comparar palabras escritas a mano (acentos, faltas de ortografía)
 sala/               página de la sala (vista de jugador y de pantalla)
 juegos/             cada juego en su carpeta; el celular del anfitrión lleva las reglas
 database.rules.json reglas de seguridad de Firebase

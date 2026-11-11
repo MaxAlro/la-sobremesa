@@ -24,6 +24,8 @@
   /* Cartas de papel y su tinta */
   --carta: #f3ecdf;
   --tinta: #14191a;
+  --tinta-suave: #5a4a3a;    /* texto secundario sobre la carta */
+  --acento-en-carta: #d4583a; /* el acento, más oscuro para que se lea sobre la carta */
 
   /* Acento: código de sala, juez, botones principales, lo importante */
   --acento: #ff8a6b;
@@ -69,7 +71,7 @@
 [data-tema="azul"] {
   --fondo-1: #1f2a3a; --fondo-2: #141b27; --fondo-3: #0b0f17;
   --carta: #f3ead6; --tinta: #1a1712;
-  --acento: #e8b860; --acento-rgb: 232, 184, 96;
+  --acento: #e8b860; --acento-rgb: 232, 184, 96; --acento-en-carta: #9a6a12;
   --texto: #efe6d2; --suave: #9fb0c6; --listo: #8fd1b4;
 }
 
@@ -77,7 +79,7 @@
   --fondo-1: #1d3a2e; --fondo-2: #13281f; --fondo-3: #0a1712;
   --madera-1: #4a2e1a; --madera-2: #2b1a0e;
   --carta: #f4ecd8; --tinta: #17140f;
-  --acento: #d9a441; --acento-rgb: 217, 164, 65;
+  --acento: #d9a441; --acento-rgb: 217, 164, 65; --acento-en-carta: #8f6514;
   --texto: #eee7d4; --suave: #9dbcab; --listo: #9be0b8;
 }
 
@@ -85,7 +87,7 @@
   --fondo-1: #3a1a24; --fondo-2: #271118; --fondo-3: #16090d;
   --madera-1: #3b2416; --madera-2: #21140b;
   --carta: #f6ecdc; --tinta: #1b1210;
-  --acento: #f0a868; --acento-rgb: 240, 168, 104;
+  --acento: #f0a868; --acento-rgb: 240, 168, 104; --acento-en-carta: #b0582a;
   --texto: #f3e6d8; --suave: #c7a1aa; --listo: #a6dcb8;
 }
 
@@ -93,7 +95,7 @@
   --fondo-1: #2c1f44; --fondo-2: #1d142e; --fondo-3: #100b1a;
   --madera-1: #33221a; --madera-2: #1d130d;
   --carta: #f3ecdf; --tinta: #1a1520;
-  --acento: #ffbe55; --acento-rgb: 255, 190, 85;
+  --acento: #ffbe55; --acento-rgb: 255, 190, 85; --acento-en-carta: #9a6200;
   --texto: #efe8f5; --suave: #b3a3cc; --listo: #8fd9c0;
 }
 
@@ -101,6 +103,6 @@
   --fondo-1: #2a2826; --fondo-2: #1c1b1a; --fondo-3: #111010;
   --madera-1: #3d2a1d; --madera-2: #231810;
   --carta: #efe9df; --tinta: #161412;
-  --acento: #d97b4a; --acento-rgb: 217, 123, 74;
+  --acento: #d97b4a; --acento-rgb: 217, 123, 74; --acento-en-carta: #a8502a;
   --texto: #ece6dc; --suave: #aaa39a; --listo: #9fcfa6;
 }
