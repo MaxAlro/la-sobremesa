@@ -1,5 +1,12 @@
 {
   "rules": {
+    "indice": {
+      ".read": "auth != null",
+      "$codigo": {
+        ".write": "auth != null && ((newData.exists() && root.child('salas').child($codigo).child('publico/creador').val() == auth.uid) || (!newData.exists() && (!root.child('salas').child($codigo).exists() || root.child('salas').child($codigo).child('publico/actividad').val() < now - 86400000)))",
+        ".validate": "newData.isNumber() && newData.val() <= now"
+      }
+    },
     "salas": {
       "$codigo": {
         ".write": "auth != null && data.exists() && !newData.exists() && (!data.child('publico/actividad').exists() || data.child('publico/actividad').val() < now - 86400000)",

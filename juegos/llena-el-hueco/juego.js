@@ -466,17 +466,20 @@ function revelando(st, e) {
   const rs = lista(e.respuestas), n = rs.length, k = e.revelado || 0;
   if (actuoComoJuez(st, e)) {
     const nota = soyJuez(st, e) ? '' : `<p class="aviso-local">${esc(nombre(st, e.juez))} se desconectó: tú eliges por esta ronda.</p>`;
-    if (k < n) {
+    if (k <= n) {
       const actual = k > 0 ? rs[k - 1] : null;
+      const texto = k === 0 ? `Hay ${n} respuesta${n === 1 ? '' : 's'}. Léelas en voz alta una por una.` : k === n ? `Respuesta ${k} de ${n}: era la última.` : `Respuesta ${k} de ${n}`;
+      const boton = k === 0 ? 'Leer la primera' : k === n ? 'Elegir la ganadora' : 'Siguiente respuesta';
       return `${nota}${actual ? fraseCarta(e, lista(actual.textos), 'grande') : fraseCarta(e, [])}
-        <p class="sub centrado">${k === 0 ? `Hay ${n} respuesta${n === 1 ? '' : 's'}. Léelas en voz alta una por una.` : `Respuesta ${k} de ${n}`}</p>
-        <button class="btn pri grande" data-accion="revelar">${k === 0 ? 'Leer la primera' : 'Siguiente respuesta'}</button>`;
+        <p class="sub centrado">${texto}</p>
+        <button class="btn pri grande" data-accion="revelar">${boton}</button>`;
     }
     return `${nota}<span class="etiqueta">Elige la ganadora</span><div class="opciones-ganadora">${rs.map((r) => `<button class="frase-carta opcion ${ui.eleccion === r.id ? 'sel' : ''}" data-accion="elegir" data-id="${esc(r.id)}"><p>${llenar(e.frase, lista(r.textos))}</p></button>`).join('')}</div>
       <div class="pie-fijo"><button class="btn pri grande" data-accion="confirmar" ${ui.eleccion ? '' : 'disabled'}>Elegir esta</button></div>`;
   }
   const vistas = rs.slice(0, k);
-  return `${fraseCarta(e, [])}<div class="panel espera"><b>${esc(nombre(st, e.juez))} está leyendo las respuestas.</b><p class="sub">${k} de ${n}</p></div>
+  const eligiendo = k > n;
+  return `${fraseCarta(e, [])}<div class="panel espera"><b>${esc(nombre(st, e.juez))} ${eligiendo ? 'está eligiendo la ganadora…' : 'está leyendo las respuestas.'}</b>${eligiendo ? '' : `<p class="sub">${k} de ${n}</p>`}</div>
     <div class="reveladas">${vistas.map((r) => `<div class="frase-carta chica"><p>${llenar(e.frase, lista(r.textos))}</p></div>`).reverse().join('')}</div>`;
 }
 
@@ -529,10 +532,10 @@ function pintarPantalla(st, e) {
     centro = fraseCarta(e, [], 'tele');
     pie = faltan ? `Esperando ${faltan === 1 ? 'una carta' : `${faltan} cartas`}… · Juez: ${esc(nombre(st, e.juez))}` : '¡Ya están todas!';
   } else if (e.fase === 'revelando') {
-    const actual = k > 0 ? rs[k - 1] : null;
+    const kk = Math.min(k, rs.length), actual = kk > 0 ? rs[kk - 1] : null;
     centro = (actual ? fraseCarta(e, lista(actual.textos), 'tele') : fraseCarta(e, [], 'tele'))
-      + (k > 1 ? `<div class="p-previas">${rs.slice(0, k - 1).map((r) => `<div class="carta">${esc(lista(r.textos).join(' / '))}</div>`).join('')}</div>` : '');
-    pie = k < rs.length ? `${esc(nombre(st, e.juez))} lee las respuestas · ${k} de ${rs.length}` : `${esc(nombre(st, e.juez))} está eligiendo la ganadora…`;
+      + (kk > 1 ? `<div class="p-previas">${rs.slice(0, kk - 1).map((r) => `<div class="carta">${esc(lista(r.textos).join(' / '))}</div>`).join('')}</div>` : '');
+    pie = k <= rs.length ? `${esc(nombre(st, e.juez))} lee las respuestas · ${k} de ${rs.length}` : `${esc(nombre(st, e.juez))} está eligiendo la ganadora…`;
   } else if (e.fase === 'ganador') {
     const g = e.ganador || {}, r = rs.find((x) => x.id === g.id);
     centro = `<div class="p-ganador">¡Punto para <b>${esc(g.nombre || '—')}</b>!</div>${r ? fraseCarta(e, lista(r.textos), 'tele ganadora') : ''}`;
