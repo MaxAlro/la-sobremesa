@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Dudo · La Sobremesa</title>
+  <script src="../../nucleo/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Zilla+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../../nucleo/tema.css">
+  <link rel="stylesheet" href="../../nucleo/base.css">
+  <script src="../../nucleo/vendor/qrcode.js"></script>
+  <style>
+    /* ---------- Celular, tablet o laptop de cada jugador ---------- */
+    .jugador { max-width: 620px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 14px; }
+    .barra { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .barra .marca { font-size: 1.05rem; }
+    .barra-der { display: flex; align-items: center; gap: 8px; }
+    .codigo-mini { font-family: var(--fuente-titulo); font-weight: 700; color: var(--acento); letter-spacing: .12em; }
+    .rol { border: 0; border-radius: 999px; padding: 5px 11px; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; background: var(--brillo-acento); color: var(--acento); }
+    .envoltura-menu { position: relative; }
+    .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 230px; display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: 12px; background: var(--fondo-2); border: 1px solid var(--linea); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+    .menu button { text-align: left; border: 0; background: none; padding: 10px 12px; border-radius: 8px; font-weight: 600; }
+    .menu button:hover { background: var(--superficie-2); }
+    h1.titulo { font-size: 1.6rem; }
+    h2.titulo { font-size: 1.8rem; }
+    .sub { margin: 0; color: var(--suave); }
+    .nota { margin: 0; font-size: .82rem; color: var(--suave); text-align: center; }
+    .centrado { text-align: center; }
+    .centro { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 24px; }
+    .espera { padding: 16px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; }
+    .espera p { margin: 0; color: var(--suave); }
+    .enlace { background: none; border: 0; color: var(--suave); text-decoration: underline; padding: 6px; font-size: .88rem; text-align: center; }
+    .cabeza { display: flex; flex-direction: column; gap: 2px; }
+    .cabeza-fila { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+    .pildora { flex: none; font-size: .8rem; padding: 4px 10px; border-radius: 999px; background: var(--brillo-acento); color: var(--texto); }
+    .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none; font-family: var(--fuente-titulo); font-weight: 700; color: var(--tinta); }
+    .pie { margin-top: auto; display: flex; flex-direction: column; gap: 8px; position: sticky; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 5; }
+    .pie.suelto { position: static; margin-top: 4px; }
+    .pie .btn.pri { box-shadow: 0 8px 22px rgba(0,0,0,.45); }
+    .reglas { padding: 0; }
+    .reglas summary { padding: 12px 14px; cursor: pointer; font-weight: 700; color: var(--suave); }
+    .reglas ol, .reglas ul { margin: 0; padding: 0 18px 14px 34px; color: var(--suave); display: grid; gap: 6px; }
+    .reglas p { margin: 0; padding: 0 14px 8px; font-weight: 700; color: var(--suave); }
+
+
+    /* Los dados propios: tapados se ven igual en todos los celulares; solo se destapan con el dedo encima */
+    .carta-secreta { flex: 1; min-height: 340px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 22px 18px; border-radius: 22px; background: var(--carta); color: var(--tinta); border: 4px solid var(--borde-acento); box-shadow: 4px 6px 0 rgba(0,0,0,.45); text-align: center; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; -webkit-tap-highlight-color: transparent; }
+    .carta-secreta:focus-visible { outline: 3px solid var(--acento); outline-offset: 3px; }
+    .carta-secreta .tapa, .carta-secreta .cara { display: flex; flex-direction: column; align-items: center; gap: 14px; pointer-events: none; }
+    .carta-secreta .cara { display: none; }
+    body.viendo-carta .carta-secreta .tapa { display: none; }
+    body.viendo-carta .carta-secreta .cara { display: flex; }
+    .tapa b { font-family: var(--fuente-titulo); font-size: 1.3rem; }
+    .tapa small { color: var(--tinta-suave); font-size: .95rem; }
+    .cara .lbl { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--tinta-suave); }
+    .vistazo { display: none; position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); background: var(--fondo-3); flex-direction: column; }
+    body.viendo-carta .vistazo { display: flex; }
+    .ver-palabra { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
+
+    /* Listas de jugadores: orden de la mesa y dados que le quedan a cada quien */
+    .orden { display: flex; flex-direction: column; gap: 6px; }
+    .turno { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); }
+    .turno .num { width: 1.4em; text-align: center; font-family: var(--fuente-titulo); font-weight: 700; color: var(--suave); }
+    .turno b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .turno small { font-weight: 700; color: var(--suave); }
+    .turno.hecha small { color: var(--listo); }
+    .turno.ahora { background: var(--brillo-acento); border-color: var(--acento); }
+    .turno.ahora small { color: var(--acento); }
+
+    .resumen { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+    .resumen h2 { font-size: 1.8rem; }
+    .resumen .mas { color: var(--listo); }
+    .lista-puntos { display: flex; flex-direction: column; gap: 6px; }
+    .fila-puntos { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: var(--superficie); border: 1px solid var(--linea); }
+    .fila-puntos.yo { border-color: var(--borde-acento); }
+    .fila-puntos.fuera { opacity: .5; }
+    .fila-puntos .nom { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+    .fila-puntos .nom b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fila-puntos .nom small { color: var(--suave); font-size: .75rem; }
+    .fila-puntos .ronda { font-family: var(--fuente-titulo); font-weight: 700; color: var(--suave); min-width: 2em; text-align: right; }
+    .fila-puntos .ronda.suma { color: var(--listo); }
+    .fila-puntos .pts { font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.2rem; color: var(--acento); min-width: 2em; text-align: right; }
+
+    /* Preparar la partida */
+    .prep { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .segmentos { display: flex; gap: 6px; }
+    .segmentos .btn { flex: 1; padding: 8px 10px; }
+    .segmentos .btn[aria-pressed="true"] { border-color: var(--acento); color: var(--acento); background: var(--brillo-acento); }
+    .modo { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); cursor: pointer; }
+    .modo input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--acento); flex: none; }
+    .modo span { display: flex; flex-direction: column; }
+    .modo small { color: var(--suave); font-size: .8rem; }
+    .modo.on { background: var(--brillo-acento); border-color: var(--acento); }
+    .modo.no { opacity: .55; cursor: not-allowed; }
+
+    /* ---------- Dados (dibujados con SVG; colores del tema) ---------- */
+    .dado { width: 1em; height: 1em; flex: none; filter: drop-shadow(1px 2px 0 rgba(0,0,0,.4)); }
+    .dado rect { fill: var(--carta); stroke: rgba(0,0,0,.18); stroke-width: 3; }
+    .dado circle { fill: var(--tinta); }
+    .dado.marca rect { stroke: var(--acento); stroke-width: 8; }
+    .dado.apagado { opacity: .35; }
+    .vasitos { display: inline-flex; gap: 3px; flex: none; }
+    .vasitos i { width: 11px; height: 11px; border-radius: 3px; background: var(--carta); opacity: .9; }
+    .vasitos i.vacio { background: none; border: 1.5px dashed var(--linea); opacity: 1; }
+    .apuesta { display: inline-flex; align-items: center; gap: .25em; font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.3rem; line-height: 1; vertical-align: middle; }
+    .apuesta .por { color: var(--suave); font-size: .7em; }
+    .apuesta .dado { font-size: 1.1em; }
+    .apuesta.grande { font-size: 3.6rem; color: var(--acento); }
+    .apuesta.grande .dado { font-size: .95em; }
+
+    .turno.cayo { opacity: .45; }
+    .turno .mover { border: 1px solid var(--linea); background: var(--superficie-2); color: var(--texto); border-radius: 8px; width: 40px; height: 36px; font-weight: 700; }
+    .turno .mover:disabled { opacity: .3; }
+    .tapa .vaso { width: 150px; height: 120px; border-radius: 24px 24px 50px 50px; display: grid; place-items: center; background: var(--madera-1); border: 5px solid var(--acento-en-carta); color: var(--acento); font-family: var(--fuente-titulo); font-weight: 700; font-size: 4.4rem; line-height: 1; }
+    .cara .lbl { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--tinta-suave); }
+    .cara .desc { max-width: 300px; font-size: .95rem; line-height: 1.35; color: var(--tinta-suave); }
+    .mis-dados { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 320px; font-size: 76px; }
+    .carta-secreta { min-height: 300px; }
+
+    .banda { padding: 10px 14px; border-radius: 12px; background: var(--brillo-acento); border: 1px solid var(--acento); font-weight: 600; }
+    .en-juego { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+    .te-toca { padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; background: var(--brillo-acento); border: 2px solid var(--acento); }
+    .te-toca h2 { font-size: 2.4rem; color: var(--acento); }
+    .te-toca .dijo { display: inline-flex; align-items: center; gap: 8px; }
+    .cantidad { display: flex; align-items: center; justify-content: center; gap: 18px; }
+    .cantidad .btn { width: 60px; font-size: 1.6rem; }
+    .cantidad b { font-family: var(--fuente-titulo); font-size: 3.4rem; line-height: 1; min-width: 80px; text-align: center; }
+    .caras { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+    .cara-btn { display: flex; justify-content: center; padding: 8px 0; border-radius: 12px; background: var(--superficie); border: 2px solid var(--linea); font-size: 38px; }
+    .cara-btn[aria-pressed="true"] { background: var(--brillo-acento); border-color: var(--acento); }
+    .cara-btn:disabled { opacity: .25; cursor: default; }
+    .dudar { display: flex; gap: 8px; }
+    .dudar .btn { flex: 1; font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.2rem; }
+    .dudar .dudo { border-color: var(--peligro); color: var(--peligro); }
+    .dudar .armado { background: var(--peligro); color: var(--tinta); font-size: .95rem; }
+    .dudar .calzo.armado { background: var(--acento); border-color: var(--acento); }
+    .historial { display: flex; flex-direction: column; gap: 5px; }
+    .hist { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--superficie-2); }
+    .hist span:not(.apuesta):not(.av) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hist.vieja { opacity: .6; background: var(--superficie); }
+
+    .resumen { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+    .resumen h2 { font-size: 1.8rem; }
+    .resumen .mas { color: var(--listo); }
+    .manos { display: flex; flex-direction: column; gap: 6px; }
+    .mano { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; background: var(--superficie); }
+    .mano > b { width: 5.5em; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fila-dados { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; font-size: 30px; }
+    .cuenta { font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.4rem; color: var(--suave); }
+    .cuenta.si { color: var(--acento); }
+    .lista-puntos { display: flex; flex-direction: column; gap: 6px; }
+    .fila-puntos { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: var(--superficie); border: 1px solid var(--linea); }
+    .fila-puntos.yo { border-color: var(--borde-acento); }
+    .fila-puntos .lugar { width: 1.8em; font-family: var(--fuente-titulo); font-weight: 700; color: var(--suave); }
+    .fila-puntos .nom { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+    .fila-puntos .nom b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fila-puntos .nom small { color: var(--suave); font-size: .75rem; }
+    .fila-puntos .ronda { font-family: var(--fuente-titulo); font-weight: 700; color: var(--suave); min-width: 2em; text-align: right; }
+    .fila-puntos .ronda.suma { color: var(--listo); }
+    .fila-puntos .pts { font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.2rem; color: var(--acento); min-width: 2em; text-align: right; }
+
+    /* Pantalla: lo propio de este juego */
+    .p-mini { position: relative; width: 44vh; height: 44vh; flex: none; margin-right: 8vh; }
+    .p-mini .dado { position: absolute; font-size: 17vh; }
+    .p-mini .uno { left: 0; top: 22vh; transform: rotate(-12deg); }
+    .p-mini .dos { left: 15vh; top: 25vh; transform: rotate(8deg); }
+    .p-mini .tres { left: 27vh; top: 17vh; transform: rotate(-4deg); }
+    .p-mini .cubilete { position: absolute; left: 7vh; top: 1vh; width: 27vh; height: 21vh; border-radius: 4vh 4vh 8vh 8vh; display: flex; align-items: center; justify-content: center; background: var(--madera-1); border: .7vh solid var(--acento); transform: rotate(-8deg); font-family: var(--fuente-titulo); font-weight: 700; font-size: 11vh; color: var(--acento); }
+    .p-pasos { display: flex; flex-direction: column; margin-top: 2vh; font-size: 3vh; }
+    .p-pasos span { margin-bottom: 1.2vh; }
+    .p-pasos b { color: var(--acento); }
+    .p-pasos .p-ejemplo { display: flex; flex-wrap: wrap; align-items: center; gap: 1vh; margin-left: 3vh; padding: 1.2vh 2vh; border-radius: 1.4vh; background: var(--superficie-2); font-size: 2.6vh; color: var(--suave); }
+    .p-pasos .p-ejemplo b { color: var(--texto); }
+    .p-pasos .p-ejemplo .dado { font-size: 4vh; }
+    .apuesta.p-grande { font-size: 24vh; color: var(--acento); gap: 3vh; margin: 1vh 0 2vh; }
+    .apuesta.p-grande .dado { font-size: .95em; }
+    .p-banda { margin-top: 2vh; padding: 1.4vh 2.4vh; border-radius: 1.6vh; background: var(--brillo-acento); border: .3vh solid var(--acento); font-size: 2.8vh; font-weight: 600; }
+    .p-hist { display: flex; flex-direction: column; }
+    .p-hist .etiqueta { margin-bottom: 1vh; }
+    .p-hist .hist { margin-bottom: 1vh; padding: 1.2vh 1.6vh; font-size: 2.6vh; border-radius: 1.4vh; }
+    .p-hist .hist .av { width: 4.6vh; height: 4.6vh; font-size: 2.2vh; }
+    .p-hist .hist .apuesta { font-size: 4vh; }
+    .p-mesa { display: flex; margin-top: 2vh; }
+    .p-lugar { flex: 1; display: flex; flex-direction: column; align-items: center; margin-right: 1.4vh; padding: 1.6vh 1vh; border-radius: 1.8vh; background: var(--superficie); border: .3vh solid var(--linea); text-align: center; min-width: 0; }
+    .p-lugar:last-child { margin-right: 0; }
+    .p-lugar .av { width: 7vh; height: 7vh; font-size: 3.2vh; }
+    .p-lugar b { font-size: 2.6vh; margin: .6vh 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .p-lugar .vasitos i { width: 2vh; height: 2vh; border-radius: .5vh; }
+    .p-lugar small { font-size: 2vh; font-weight: 700; color: var(--suave); margin-top: .6vh; }
+    .p-lugar.ahora { background: var(--brillo-acento); border-color: var(--acento); }
+    .p-lugar.ahora small { color: var(--acento); }
+    .p-lugar.cayo { opacity: .4; }
+    .pantalla .manos .mano { padding: 1.2vh 2vh; border-radius: 1.6vh; margin-bottom: 1vh; }
+    .pantalla .manos .mano .av { width: 5.6vh; height: 5.6vh; font-size: 2.6vh; }
+    .pantalla .manos .mano > b { font-size: 2.8vh; width: 8em; }
+    .pantalla .fila-dados { font-size: 6.4vh; gap: 1.2vh; }
+    .pantalla .cuenta { font-size: 4.4vh; }
+    .p-veredicto { display: flex; flex-direction: column; }
+    .p-veredicto .etiqueta { font-size: 2.4vh; }
+    .p-linea { display: flex; align-items: center; gap: 2vh; font-size: 4.4vh; margin-top: 1.4vh; }
+    .p-linea .apuesta { font-size: 7vh; }
+    .p-linea .hay { font-family: var(--fuente-titulo); font-size: 7vh; color: var(--acento); }
+    .p-dados-fin { display: flex; gap: 2vh; font-size: 13vh; margin-bottom: 2vh; }
+    .p-tabla .nom .lugar { font-family: var(--fuente-titulo); font-weight: 700; color: var(--suave); width: 6vh; }
+
+    /* ---------- Pantalla (tele, Chromecast o laptop) ----------
+       CSS conservador para navegadores de tele: flexbox y vh/vw. */
+    body.modo-pantalla { overflow: hidden; }
+    .pantalla { position: fixed; top: 0; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; padding: 4vh 4vw; }
+    .p-arriba { display: flex; justify-content: space-between; align-items: center; font-size: 2.4vh; color: var(--suave); margin-bottom: 2vh; }
+    .p-arriba .marca { font-size: 2.8vh; }
+    .p-cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+    .p-cuerpo .etiqueta { font-size: 2.2vh; }
+    .p-titulo { font-family: var(--fuente-titulo); font-weight: 700; line-height: 1.05; margin: 1vh 0; }
+    .p-sub { font-size: 3.6vh; color: var(--suave); margin: 0; }
+    .p-sub b { color: var(--texto); }
+    .p-portada { display: flex; align-items: center; }
+    .p-pasos { display: flex; flex-direction: column; margin-top: 2vh; font-size: 3vh; }
+    .p-pasos span { margin-bottom: 1.2vh; }
+    .p-pasos b { color: var(--acento); }
+    .p-pie { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 2vh; }
+    .p-dos { display: flex; align-items: center; }
+    .p-dos > div:first-child { width: 56%; flex: none; margin-right: 5vw; }
+    .p-dos > div:last-child { flex: 1; min-width: 0; }
+    .p-tabla { width: 100%; border-collapse: collapse; font-size: 2.8vh; }
+    .p-tabla th { font-size: 1.8vh; letter-spacing: .08em; text-transform: uppercase; color: var(--suave); font-weight: 700; padding: 1vh 1.4vh; text-align: right; }
+    .p-tabla td { padding: 1.2vh 1.4vh; text-align: right; border-top: 1px solid var(--linea); }
+    .p-tabla th:first-child, .p-tabla td:first-child, .p-tabla th:nth-child(2), .p-tabla td:nth-child(2) { text-align: left; }
+    .p-tabla td:nth-child(2) { color: var(--suave); font-size: 2.3vh; }
+    .p-tabla td.suma { color: var(--listo); font-family: var(--fuente-titulo); font-weight: 700; }
+    .p-tabla td.cero { color: var(--suave); font-family: var(--fuente-titulo); font-weight: 700; }
+    .p-tabla td.total { font-family: var(--fuente-titulo); font-weight: 700; color: var(--acento); font-size: 3.4vh; }
+    .p-tabla .nom { display: flex; align-items: center; font-weight: 700; }
+    .p-tabla .nom .av { width: 4.6vh; height: 4.6vh; font-size: 2.2vh; margin-right: 1.4vh; }
+    .p-esquina { position: fixed; right: 2vw; bottom: 2.4vh; display: flex; align-items: center; padding: 1.2vh 1.6vh; border-radius: 1.4vh; background: var(--fondo-3); border: 1px solid var(--linea); opacity: .92; }
+    .p-esquina canvas { width: 11vh; height: 11vh; border-radius: .8vh; image-rendering: pixelated; display: block; margin-right: 1.4vh; }
+    .p-esquina div { display: flex; flex-direction: column; font-size: 1.7vh; color: var(--suave); line-height: 1.1; }
+    .p-esquina b { font-family: var(--fuente-titulo); font-size: 4.4vh; letter-spacing: .14em; color: var(--acento); }
+    @media (max-aspect-ratio: 1/1) {
+      .pantalla { position: static; min-height: 100vh; }
+      body.modo-pantalla { overflow: auto; }
+      .p-portada, .p-dos { flex-direction: column; align-items: stretch; }
+      .p-dos > div:first-child { width: auto; margin: 0 0 4vh; }
+      .p-esquina { position: static; align-self: flex-end; margin-top: 3vh; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"><div class="centro"><p class="sub">Abriendo el juego…</p></div></div>
+  <div class="aviso" id="aviso" role="status"></div>
+  <script type="module" src="juego.js"></script>
+</body>
+</html>
