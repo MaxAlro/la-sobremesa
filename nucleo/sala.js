@@ -8,6 +8,7 @@
 //   salas/<CODIGO>/publico/jugadores/<uid>  { nombre, color, unido, conectado }
 //   salas/<CODIGO>/publico/pantallas/<uid>  { desde }
 //   salas/<CODIGO>/publico/estado       estado del juego (lo escribe el anfitrión)
+//   salas/<CODIGO>/publico/puntos/<uid>/<ronda>  puntos del marcador (cada jugador los suyos, o el anfitrión)
 //   salas/<CODIGO>/privado/<uid>        lo que solo ve ese jugador (por ejemplo, su mano)
 
 import { conectar } from './datos.js';
@@ -93,6 +94,8 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
     sala = { codigo, ...v, jugadores: v.jugadores || {}, pantallas: v.pantallas || {} };
     // Si alguien me sacó de la sala, me quedo como visitante sin perfil
     if (rol === 'jugador' && anterior?.jugadores?.[db.uid] && !sala.jugadores[db.uid]) rol = null;
+    // Al cambiar de página, la desconexión de la página anterior puede llegar después: me vuelvo a marcar presente
+    else if (rol === 'jugador' && perfil && sala.jugadores[db.uid]?.conectado === false) presentarme().catch(() => {});
     revisarAnfitrion();
     alCambiar?.(api.estado());
   }));
@@ -143,6 +146,10 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
       if (rol === 'jugador') await db.update(`${base}/jugadores/${db.uid}`, cambios);
     },
     async elegirJuego(juego) { await db.set(`${base}/juego`, juego); toca(); },
+    // Empieza un juego con su estado inicial y sin puntos anteriores (solo el anfitrión)
+    async iniciarJuego(juego, estado) { await db.update(base, { juego, estado, puntos: null }); toca(); },
+    // Escribe varias rutas dentro de la parte pública de la sala, por ejemplo { 'puntos/uid/ronda': '5' }
+    async actualizar(cambios) { await db.update(base, cambios); toca(); },
     async pasarControl(uid) { await db.set(`${base}/anfitrion`, uid); toca(); },
     async sacarJugador(uid) { await db.remove(`${base}/jugadores/${uid}`); await db.remove(`salas/${codigo}/privado/${uid}`); toca(); },
     async salir() {

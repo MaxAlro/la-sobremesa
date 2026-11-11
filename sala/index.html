@@ -54,6 +54,8 @@
     .juegos { display: flex; flex-direction: column; gap: 8px; }
     .juego { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); text-align: left; width: 100%; color: var(--texto); }
     .juego:disabled { opacity: .55; cursor: default; }
+    .juego:not(:disabled):hover { border-color: var(--borde-acento); }
+    .juego .ir { color: var(--acento); font-family: var(--fuente-titulo); font-weight: 700; flex: none; }
     .juego .ic { width: 40px; height: 40px; border-radius: 9px; display: grid; place-items: center; background: var(--carta); color: var(--tinta); font-family: var(--fuente-titulo); font-weight: 700; flex: none; }
     .juego div { display: flex; flex-direction: column; line-height: 1.25; flex: 1; }
     .juego strong { font-family: var(--fuente-titulo); font-size: 1.05rem; }
