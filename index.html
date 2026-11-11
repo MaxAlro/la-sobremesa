@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>La Sobremesa</title>
+  <meta name="description" content="Juegos para la familia, desde los celulares.">
+  <script src="nucleo/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Zilla+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="nucleo/tema.css">
+  <link rel="stylesheet" href="nucleo/base.css">
+  <style>
+    .inicio { max-width: 980px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 28px; }
+    .barra { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .barra .marca { font-size: 1.15rem; }
+    .portada { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; }
+    .portada h1 { font-size: clamp(2.6rem, 9vw, 4.6rem); }
+    .portada h1 em { font-style: normal; color: var(--acento); }
+    .portada p { margin: 0; color: var(--suave); font-size: 1.05rem; }
+    .columnas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+    @media (max-width: 720px) { .columnas { grid-template-columns: minmax(0, 1fr); } }
+    .grupo { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .sala { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .codigo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .codigo input { width: 100%; aspect-ratio: 1 / 1.1; text-align: center; text-transform: uppercase; font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.6rem; border-radius: 12px; border: 1.5px solid var(--linea); background: var(--fondo-3); color: var(--acento); }
+    .codigo input:disabled { opacity: .55; }
+    .nota { margin: 0; color: var(--suave); font-size: .85rem; }
+    .opcion { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; background: var(--superficie); border: 1px solid var(--linea); text-decoration: none; color: var(--texto); transition: border-color .15s; }
+    a.opcion:hover { border-color: var(--borde-acento); }
+    .opcion .ic { flex: none; width: 46px; height: 46px; border-radius: 10px; display: grid; place-items: center; background: var(--carta); color: var(--tinta); font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.15rem; box-shadow: 2px 3px 0 rgba(0,0,0,.4); }
+    .opcion div { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+    .opcion strong { font-family: var(--fuente-titulo); font-size: 1.1rem; }
+    .opcion span { font-size: .85rem; color: var(--suave); }
+    .opcion .ir { margin-left: auto; color: var(--acento); font-family: var(--fuente-titulo); font-weight: 700; flex: none; }
+    .opcion.pronto { opacity: .6; }
+    .chip { margin-left: auto; flex: none; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--superficie-2); color: var(--suave); }
+    .pie { color: var(--suave); font-size: .8rem; text-align: center; }
+    .modal { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .temas { display: grid; gap: 8px; }
+    .tema { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--linea); background: var(--superficie); text-align: left; }
+    .tema[aria-pressed="true"] { border-color: var(--acento); }
+    .tema .mues { display: flex; width: 70px; height: 22px; border-radius: 6px; overflow: hidden; flex: none; }
+    .tema .mues i { flex: 1; }
+    .acciones { display: flex; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+  <main class="inicio">
+    <div class="barra">
+      <a class="marca" href="./">La <em>Sobremesa</em></a>
+      <button class="btn" id="ajustesBtn" type="button">Ajustes</button>
+    </div>
+
+    <section class="portada">
+      <h1>La <em>Sobremesa</em></h1>
+      <p>Juegos para la familia, desde los celulares. ¿Qué jugamos hoy?</p>
+    </section>
+
+    <div class="columnas">
+      <div class="grupo">
+        <span class="etiqueta">Herramientas</span>
+        <a class="opcion" href="marcador/">
+          <span class="ic">#</span>
+          <div><strong>Marcador</strong><span>Puntos por ronda para cualquier juego de mesa</span></div>
+          <span class="ir">Abrir ›</span>
+        </a>
+
+        <span class="etiqueta" style="margin-top:14px">Juegos</span>
+        <div class="opcion pronto">
+          <span class="ic">¿?</span>
+          <div><strong>Llena el hueco</strong><span>Cartas · 4 a 9 jugadores · adultos</span></div>
+          <span class="chip">Pronto</span>
+        </div>
+        <div class="opcion pronto">
+          <span class="ic">…</span>
+          <div><strong>Más juegos</strong><span>Impostor, dibujos, trivia y más</span></div>
+          <span class="chip">Pronto</span>
+        </div>
+      </div>
+
+      <div class="grupo">
+        <span class="etiqueta">Salas</span>
+        <div class="panel sala">
+          <label class="etiqueta" for="c1">Entrar con código</label>
+          <div class="codigo" aria-label="Código de la sala">
+            <input id="c1" maxlength="1" disabled aria-label="Letra 1">
+            <input maxlength="1" disabled aria-label="Letra 2">
+            <input maxlength="1" disabled aria-label="Letra 3">
+            <input maxlength="1" disabled aria-label="Letra 4">
+          </div>
+          <button class="btn pri grande" type="button" disabled>Entrar como jugador</button>
+          <button class="btn sec grande" type="button" disabled>Abrir pantalla de juego</button>
+          <p class="nota">Las salas para jugar desde varios celulares llegan en la siguiente versión. Mientras tanto, el marcador funciona en este dispositivo como siempre.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="pie">Hecho en casa para jugar en familia.</p>
+  </main>
+
+  <dialog id="ajustes">
+    <div class="modal">
+      <h2>Ajustes</h2>
+      <span class="etiqueta">Tema de colores (solo en este dispositivo)</span>
+      <div class="temas" id="temas"></div>
+      <div class="acciones"><button class="btn" id="cerrarAjustes" type="button">Listo</button></div>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      var dlg = document.getElementById('ajustes');
+      var box = document.getElementById('temas');
+      var MUESTRAS = {
+        '': ['#173438', '#081517', '#f3ecdf', '#ff8a6b'],
+        azul: ['#1f2a3a', '#0b0f17', '#f3ead6', '#e8b860'],
+        verde: ['#1d3a2e', '#0a1712', '#f4ecd8', '#d9a441'],
+        vino: ['#3a1a24', '#16090d', '#f6ecdc', '#f0a868'],
+        ciruela: ['#2c1f44', '#100b1a', '#f3ecdf', '#ffbe55'],
+        grafito: ['#2a2826', '#111010', '#efe9df', '#d97b4a']
+      };
+      function actual() { return document.documentElement.getAttribute('data-tema') || ''; }
+      function pintar() {
+        box.innerHTML = '';
+        window.SOBREMESA_TEMAS.forEach(function (t) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'tema';
+          b.setAttribute('aria-pressed', String(t.id === actual()));
+          // Las muestras solo ilustran cada tema en este selector; los colores reales viven en tema.css
+          b.innerHTML = '<span class="mues">' + MUESTRAS[t.id].map(function (c) { return '<i style="background:' + c + '"></i>'; }).join('') + '</span>' + t.nombre;
+          b.onclick = function () { window.sobremesaCambiarTema(t.id); pintar(); };
+          box.appendChild(b);
+        });
+      }
+      document.getElementById('ajustesBtn').onclick = function () { pintar(); dlg.showModal(); };
+      document.getElementById('cerrarAjustes').onclick = function () { dlg.close(); };
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+/*
+  La Sobremesa · componentes base
+  Solo usa variables de tema.css. Nada de colores escritos a mano.
+*/
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--fondo-3);
+  background-image: radial-gradient(120% 80% at 50% 0%, var(--fondo-1) 0%, var(--fondo-2) 55%, var(--fondo-3) 100%);
+  background-attachment: fixed;
+  color: var(--texto);
+  font-family: var(--fuente-texto);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--acento); }
+
+h1, h2, h3 { font-family: var(--fuente-titulo); font-weight: 700; line-height: 1.15; margin: 0; }
+
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+/* Marca */
+.marca { font-family: var(--fuente-titulo); font-weight: 700; letter-spacing: .01em; color: var(--texto); text-decoration: none; }
+.marca em { font-style: normal; color: var(--acento); }
+
+/* Etiqueta pequeña en mayúsculas */
+.etiqueta { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--suave); }
+
+/* Botones */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4em;
+  border: 1px solid var(--linea); background: var(--superficie-2); color: var(--texto);
+  border-radius: 10px; padding: 8px 12px; font-size: .85rem; font-weight: 600;
+  transition: border-color .15s, background-color .15s, transform .15s;
+}
+.btn:hover { border-color: var(--borde-acento); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .4; cursor: default; transform: none; }
+.btn.pri { background: var(--acento); color: var(--tinta); border-color: var(--acento); font-family: var(--fuente-titulo); font-weight: 700; }
+.btn.sec { background: transparent; border: 1.5px solid var(--borde-acento); font-family: var(--fuente-titulo); font-weight: 700; }
+.btn.peligro { color: var(--peligro); }
+.btn.on { border-color: var(--acento); color: var(--acento); }
+.btn.grande { padding: 13px 16px; font-size: 1rem; border-radius: 12px; }
+
+/* Campos */
+.campo, select.campo {
+  width: 100%; min-width: 0; border: 1px solid var(--linea); border-radius: 10px;
+  padding: 9px 11px; background: var(--fondo-3); color: var(--texto); font-size: .9rem; outline: none;
+}
+.campo:focus { border-color: var(--acento); box-shadow: 0 0 0 2px var(--brillo-acento); }
+
+/* Panel (tarjeta de contenido sobre el tapete) */
+.panel { background: var(--superficie); border: 1px solid var(--linea); border-radius: 14px; }
+.panel-acento { background: var(--fondo-3); border: 1.5px solid var(--borde-acento); box-shadow: 0 0 28px var(--brillo-acento); border-radius: 14px; }
+
+/* Carta de papel */
+.carta { background: var(--carta); color: var(--tinta); border-radius: 10px; box-shadow: 2px 3px 0 rgba(0, 0, 0, .45); font-weight: 600; }
+
+/* Aviso flotante */
+.aviso {
+  position: fixed; left: 50%; bottom: 6vh; z-index: 50; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  max-width: 94vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: var(--fondo-3); border: 1.5px solid var(--borde-acento); border-radius: 14px; padding: .5em 1.1em;
+  color: var(--texto); font-family: var(--fuente-titulo); font-weight: 700; font-size: clamp(1.1rem, 3.2vw, 2.4rem);
+  box-shadow: 0 0 30px var(--brillo-acento); transition: opacity .2s, transform .2s;
+}
+.aviso.ver { opacity: 1; transform: translate(-50%, 0); }
+
+/* Diálogos */
+dialog {
+  border: 1.5px solid var(--borde-acento); border-radius: 16px; padding: 0; background: var(--fondo-2); color: var(--texto);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .5); max-width: 480px; width: calc(100% - 32px);
+}
+dialog::backdrop { background: rgba(0, 0, 0, .6); }
+
+.oculto { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
