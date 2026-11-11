@@ -13,7 +13,11 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
   *jugador* (celular, tablet o laptop) o *pantalla* (tele, Chromecast o laptop conectada a la tele). La pantalla es
   opcional: sin ella, el código y lo común se ven en todos los celulares. El primer jugador es el anfitrión; puede pasar
   el control o sacar a alguien, y si se desconecta, otro toma el control a los 8 segundos.
-- **Próximamente:** el marcador como sala y el juego de cartas "Llena el hueco".
+- **Marcador en sala:** el anfitrión elige "Marcador" en la sala y todos pasan a él. Cada quien anota sus puntos
+  desde su celular y ve cómo van; el anfitrión tiene todas las funciones del marcador (rondas, jugadores sin celular,
+  corregir cualquier puntaje, deshacer) y puede activar "Solo yo capturo". La tele muestra el marcador grande con el
+  código para sumarse. Al volver a la sala los puntos se guardan para seguir después.
+- **Próximamente:** el juego de cartas "Llena el hueco".
 
 ## Cómo está hecho
 
@@ -21,7 +25,7 @@ HTML, CSS y JavaScript simples, sin paso de compilación.
 
 ```
 index.html          inicio
-marcador/           marcador por rondas
+marcador/           marcador por rondas (solo o dentro de una sala con ?sala=CODIGO)
 nucleo/tema.css     TODOS los colores y fuentes, y los temas alternos
 nucleo/tema.js      aplica el tema elegido en cada dispositivo
 nucleo/base.css     botones, campos, paneles, cartas

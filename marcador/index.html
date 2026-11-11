@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Zilla+Slab:wght@500;700&display=swap">
   <link rel="stylesheet" href="../nucleo/tema.css">
   <link rel="stylesheet" href="../nucleo/base.css">
+  <script src="../nucleo/vendor/qrcode.js"></script>
   <style>
     /* Marcador · estilos propios. Solo variables de ../nucleo/tema.css */
     body{min-height:100vh}
@@ -167,6 +168,31 @@
       .tabbar button.on{background:var(--brillo-acento);color:var(--acento)}
       .toast{bottom:calc(84px + env(safe-area-inset-bottom));font-size:1.1rem}body.display .tabbar{display:none}
     }
+    /* ---------- Marcador dentro de una sala ---------- */
+    body.cargando #control,body.cargando .tabbar{visibility:hidden}
+    .sala-barra{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:0 0 14px;padding:10px 12px;border-radius:14px;background:var(--superficie);border:1px solid var(--borde-acento)}
+    .sala-barra.hidden{display:none}
+    .sb-cod{font-family:var(--fuente-titulo);color:var(--suave);white-space:nowrap}.sb-cod b{color:var(--acento);letter-spacing:.12em}
+    .sb-txt{flex:1 1 180px;min-width:0;color:var(--suave);font-size:.88rem}.sb-txt b{color:var(--texto)}
+    .sb-acc{display:flex;gap:6px;flex-wrap:wrap}
+    body.en-sala #screenBtn{display:none}
+    body.jugador-sala #roundBtn,body.jugador-sala .setup,body.jugador-sala .add-player,body.jugador-sala #resetBtn,body.jugador-sala #backupBtn,body.jugador-sala [data-proxy="#resetBtn"],body.jugador-sala [data-proxy="#backupBtn"],body.jugador-sala .more-note{display:none!important}
+    .mini-tit{margin-top:8px}.mini-pos{padding:0}
+    .nota-sala{padding:10px 12px;border-radius:12px;background:var(--brillo-acento);color:var(--texto);font-size:.9rem;line-height:1.35}
+    .quick-row.mia{border-color:var(--borde-acento)}
+    tr.mia .name{color:var(--acento);font-weight:700}
+    tr.ausente td:first-child,.q-name small{opacity:.6}
+    .sala-esquina{display:none}
+    body.display.en-sala .sala-esquina{position:fixed;right:2vw;bottom:2.4vh;display:flex;align-items:center;gap:1.4vh;padding:1.2vh 1.6vh;border-radius:1.4vh;background:var(--fondo-3);border:1px solid var(--linea);opacity:.92}
+    .sala-esquina canvas{width:11vh;height:11vh;border-radius:.8vh;image-rendering:pixelated;display:block}
+    .sala-esquina div{display:flex;flex-direction:column;gap:.4vh;font-size:1.7vh;color:var(--suave);line-height:1.1}
+    .sala-esquina b{font-family:var(--fuente-titulo);font-size:4.4vh;letter-spacing:.14em;color:var(--acento)}
+    /* Teles con navegador viejo: sin unidades de contenedor ni dvh, el marcador grande usa vh/vw */
+    @supports not (height:1cqh){
+      body.display,body.display .board,body.split{height:100vh}
+      .board-in{gap:2.4vh;padding:3.5vh 4vw}.board-head{gap:2vw}.board-head .eyebrow{font-size:2.6vh}.board-head h1{font-size:7.5vh}
+      .board-list{gap:1.4vh;--rh:min(14vh,calc(76vh / var(--n) - 1.4vh))}.board-empty{font-size:4vh}
+    }
     @media(max-width:359px){.quick-row{grid-template-areas:"n t" "i i" "b b"}.bump{flex:1}}
   </style>
 </head>
@@ -176,6 +202,7 @@
     <div class="head-title"><p class="eyebrow"><a href="../">‹ La <em>Sobremesa</em></a><span>· Marcador</span></p><input id="titleInput" class="title-input" maxlength="60" aria-label="Nombre del juego"><p>Captura puntos y mira cómo cambia la clasificación.</p></div>
     <div class="actions"><button class="btn primary" id="screenBtn" title="Abre el marcador grande en la otra pantalla">▣ Pantalla de marcador</button><button class="btn" id="splitBtn" title="Marcador arriba y captura abajo en la misma ventana">⬒ Dividir</button><button class="btn" id="undoBtn" title="Deshacer (Ctrl+Z)">↶ Deshacer</button><button class="btn" id="helpBtn" title="Atajos de teclado (H)">⌨ Atajos</button><button class="btn" id="csvBtn">⇩ CSV</button><button class="btn" id="backupBtn">↥ Respaldo</button><button class="btn danger" id="resetBtn">↻ Nuevo juego</button></div>
   </header>
+  <div class="sala-barra hidden" id="salaBarra" role="status"></div>
   <section class="grid">
     <div class="main-col">
       <article class="card quick-card" data-panel="capturar">
@@ -204,6 +231,7 @@
 </main>
 <nav class="tabbar" aria-label="Secciones"><button data-tab="capturar"><span>+</span>Capturar</button><button data-tab="posiciones"><span>1º</span>Marcador</button><button data-tab="tabla"><span>▦</span>Tabla</button><button data-tab="grafica"><span>↗</span>Gráfica</button><button data-tab="mas"><span>⋯</span>Más</button></nav>
 <section class="board" id="board" aria-live="polite"></section>
+<div class="sala-esquina" id="salaEsquina"></div>
 <div class="aviso toast" id="toast" role="status"></div>
 <div class="help hidden" id="help"><div class="help-card"><h2>Atajos de teclado</h2><dl>
   <dt>↑ ↓</dt><dd>Elegir jugador</dd>
@@ -222,7 +250,9 @@
 <dialog id="backupDialog"><div class="modal"><h2>Respaldo del juego</h2><p>Copia este texto para guardar el juego, o pega uno anterior y pulsa “Importar”.</p><textarea id="backupText" spellcheck="false"></textarea><div class="modal-actions"><button class="btn" id="closeBackup">Cerrar</button><button class="btn" id="copyBackup">Copiar</button><button class="btn primary" id="importBackup">Importar</button></div></div></dialog>
 <script>
 (() => {
-  const KEY='sobremesa-marcador-v1', INK_KEY=KEY+'-pizarra', TAB_KEY=KEY+'-pestana', IS_DISPLAY=location.hash==='#pantalla';
+  // Modo sala: ?sala=CODIGO. Todos juegan el mismo marcador desde su celular (ver sala-marcador.js).
+  const Q=new URLSearchParams(location.search), SALA=(Q.get('sala')||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,4), EN_SALA=Q.has('sala');
+  const KEY='sobremesa-marcador-v1', INK_KEY=KEY+(EN_SALA?'-sala-'+SALA:'')+'-pizarra', TAB_KEY=KEY+'-pestana', IS_DISPLAY=location.hash==='#pantalla'||(EN_SALA&&Q.get('rol')==='pantalla');
   // Datos del marcador anterior (marcador-rondas). Si está en el mismo sitio, se recuperan solos la primera vez.
   const OLD_KEY='marcador-rondas-v1';
   const MOBILE=matchMedia('(max-width:700px),(max-height:500px) and (pointer:coarse)');
@@ -242,8 +272,8 @@
     return s;
   }
   let state, migrated=false;
-  try{state=normalize(JSON.parse(store.get(KEY)||'null'))}catch{}
-  if(!state&&!IS_DISPLAY){
+  if(!EN_SALA)try{state=normalize(JSON.parse(store.get(KEY)||'null'))}catch{}
+  if(!state&&!IS_DISPLAY&&!EN_SALA){
     try{state=normalize(JSON.parse(store.get(OLD_KEY)||'null'))}catch{}
     if(state){migrated=true;
       // Los colores por defecto del marcador viejo se cambian por los de la nueva paleta
@@ -252,6 +282,10 @@
       store.set(KEY,JSON.stringify(state));const ink=store.get(OLD_KEY+'-pizarra');if(ink)store.set(INK_KEY,ink)}
   }
   state??=defaultState();
+  // En la sala: quién soy, si tengo el control y si el anfitrión puso el candado
+  let enlace=null, soyAnf=!EN_SALA, yo=null, anfNombre='', cargado=!EN_SALA;
+  const esAnf=()=>!EN_SALA||soyAnf;
+  const puedeEditar=pid=>!EN_SALA||soyAnf||(pid===yo&&!state.candado);
 
   const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s), esc=s=>String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const fmt=n=>n.toLocaleString('es-MX');
@@ -281,6 +315,7 @@
   const hiddenSeries=new Set();
   const undoStack=[];
   function save(){
+    if(EN_SALA){enlace?.guardar(state).catch(e=>{console.error(e);showToast('No se pudo guardar. Revisa tu conexión.',4000)});return}
     store.set(KEY,JSON.stringify(state));
     const msg={type:'marcador',state};
     bc?.postMessage(msg);
@@ -299,27 +334,35 @@
   }
   const toggleHelp=force=>$('#help').classList.toggle('hidden',force===undefined?undefined:!force);
 
-  const scoreInput=(p,r,cls='')=>`<input class="score${cls}" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" data-player="${p.id}" data-round="${r.id}" value="${esc(raw(p.id,r.id)??'')}" placeholder="0" aria-label="${esc(p.name)}, ${esc(r.name)}">`;
+  const scoreInput=(p,r,cls='')=>`<input class="score${cls}" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" data-player="${p.id}" data-round="${r.id}" value="${esc(raw(p.id,r.id)??'')}" placeholder="0" aria-label="${esc(p.name)}, ${esc(r.name)}"${puedeEditar(p.id)?'':' readonly'}>`;
   function standingHTML(list){if(!list.length)return '<div class="empty">Todavía no hay jugadores.</div>';return positions(list).map(x=>`<div class="rank" style="--c:${colorOf(x.id)}"><span class="place">${x.pos}</span><span class="rank-name">${esc(x.name)}</span><span class="rank-score">${fmt(x.score)}</span></div>`).join('')}
 
   function render(){
     $('#titleInput').value=state.title;$('#ruleSelect').value=state.rule;$('#ruleSelect2').value=state.rule;
+    $('#titleInput').readOnly=!esAnf();$('#ruleSelect').disabled=$('#ruleSelect2').disabled=!esAnf();
+    if(EN_SALA)pintarSala();
     document.body.classList.toggle('noplayers',!state.players.length);
     if(!state.rounds.some(r=>r.id===quickRound))quickRound=state.rounds.at(-1).id;
-    $('#scoreHead').innerHTML=`<tr><th>Jugador</th>${state.rounds.map(r=>`<th><div class="round-title"><input data-round-name="${r.id}" value="${esc(r.name)}" aria-label="Nombre de ronda"><button class="icon-btn" data-del-round="${r.id}" title="Eliminar ronda">×</button></div></th>`).join('')}<th class="total-head">Total</th></tr>`;
-    $('#scoreBody').innerHTML=state.players.map(p=>`<tr><td><div class="player-cell"><input type="color" class="swatch" data-color="${p.id}" value="${p.color}" title="Color del jugador"><input class="name" data-name="${p.id}" value="${esc(p.name)}"><button class="icon-btn" data-del-player="${p.id}" title="Eliminar jugador">×</button></div></td>${state.rounds.map(r=>`<td>${scoreInput(p,r)}</td>`).join('')}<td class="total" data-total="${p.id}"></td></tr>`).join('');
+    $('#scoreHead').innerHTML=`<tr><th>Jugador</th>${state.rounds.map(r=>`<th><div class="round-title"><input data-round-name="${r.id}" value="${esc(r.name)}" aria-label="Nombre de ronda"${esAnf()?'':' readonly'}>${esAnf()?`<button class="icon-btn" data-del-round="${r.id}" title="Eliminar ronda">×</button>`:''}</div></th>`).join('')}<th class="total-head">Total</th></tr>`;
+    // En la sala, el nombre y color de quien tiene celular los cambia esa persona desde su celular
+    const fijo=p=>EN_SALA&&(!soyAnf||p.celular);
+    $('#scoreBody').innerHTML=state.players.map(p=>`<tr class="${p.id===yo?'mia':''}${EN_SALA&&p.celular&&!p.conectado?' ausente':''}"><td><div class="player-cell"><input type="color" class="swatch" data-color="${p.id}" value="${p.color}" title="Color del jugador"${fijo(p)?' disabled':''}><input class="name" data-name="${p.id}" value="${esc(p.name)}"${fijo(p)?' readonly':''}>${esAnf()?`<button class="icon-btn" data-del-player="${p.id}" title="${EN_SALA&&p.celular?'Sacar de la sala':'Eliminar jugador'}">×</button>`:''}</div></td>${state.rounds.map(r=>`<td>${scoreInput(p,r)}</td>`).join('')}<td class="total" data-total="${p.id}"></td></tr>`).join('');
     $('#scoreEmpty').classList.toggle('hidden',state.players.length>0);$('table').classList.toggle('hidden',state.players.length===0);
     renderQuick();renderSide();
   }
   function renderQuick(){
     const r=state.rounds.find(x=>x.id===quickRound);
-    $('#quickList').innerHTML=state.players.length?state.players.map(p=>`<div class="quick-row" style="--c:${p.color}"><span class="q-name">${esc(p.name)||'—'}</span>${scoreInput(p,r,' big')}<div class="bumps">${[-1,1,5,10].map(a=>`<button class="bump" data-bump="${p.id}" data-amt="${a}">${a<0?'−':'+'}${Math.abs(a)}</button>`).join('')}<button class="bump sign" data-sign="${p.id}" aria-label="Cambiar signo">±</button></div><span class="q-total" data-qtotal="${p.id}"></span></div>`).join(''):'<div class="empty">Agrega jugadores para comenzar.</div>';
+    // En la sala, cada jugador ve solo su renglón; el anfitrión ve a todos
+    const filas=esAnf()?state.players:state.players.filter(p=>p.id===yo);
+    const nota=EN_SALA&&!soyAnf?`<div class="nota-sala">${state.candado?`<b>${esc(anfNombre||'El anfitrión')}</b> está capturando los puntos de todos.`:'Anota aquí tus puntos de cada ronda. Los demás los ven al momento.'}</div>`:'';
+    $('#quickList').innerHTML=nota+(filas.length?filas.map(p=>`<div class="quick-row${p.id===yo?' mia':''}" style="--c:${p.color}"><span class="q-name">${esc(p.name)||'—'}${EN_SALA&&p.celular&&!p.conectado?' <small>· ausente</small>':''}</span>${scoreInput(p,r,' big')}<div class="bumps">${puedeEditar(p.id)?[-1,1,5,10].map(a=>`<button class="bump" data-bump="${p.id}" data-amt="${a}">${a<0?'−':'+'}${Math.abs(a)}</button>`).join('')+`<button class="bump sign" data-sign="${p.id}" aria-label="Cambiar signo">±</button>`:''}</div><span class="q-total" data-qtotal="${p.id}"></span></div>`).join(''):`<div class="empty">${EN_SALA?'Todavía no hay nadie en la mesa.':'Agrega jugadores para comenzar.'}</div>`)+(EN_SALA&&!soyAnf?'<span class="etiqueta mini-tit">Cómo van</span><div class="standing-list mini-pos" id="miniPos"></div>':'');
     markSel();
   }
   function markSel(){sel=Math.min(sel,Math.max(state.players.length-1,0));$$('.quick-row').forEach((e,i)=>e.classList.toggle('sel',kbUsed&&i===sel))}
   function renderSide(){
     const last=state.rounds.length-1;
     $('#currentStandings').innerHTML=standingHTML(totalsAt(last));
+    const mini=$('#miniPos');if(mini)mini.innerHTML=standingHTML(totalsAt(last));
     $('#currentHint').textContent=`Después de ${state.rounds.length} ${state.rounds.length===1?'ronda':'rondas'}`;
     const hs=$('#historyRound'),old=hs.value;
     hs.innerHTML=state.rounds.map((r,i)=>`<option value="${i}">${esc(r.name)}</option>`).join('');
@@ -465,6 +508,66 @@
     $('#inkClear').onclick=()=>{if(!confirm('¿Borrar toda la pizarra?'))return;ctx.clearRect(0,0,cv.width,cv.height);store.set(INK_KEY,'')};
   }
 
+  // ---------------------------------------------------------- sala
+  function pintarSala(){
+    const b=$('#salaBarra');b.classList.remove('hidden');
+    b.innerHTML=`<span class="sb-cod">Sala <b>${esc(SALA)}</b></span><span class="sb-txt">${soyAnf?(state.candado?'Solo tú capturas los puntos.':'Cada quien anota sus puntos desde su celular.'):`Anfitrión: <b>${esc(anfNombre||'—')}</b>`}</span>${soyAnf?`<span class="sb-acc"><button class="btn${state.candado?' on':''}" id="candadoBtn" aria-pressed="${!!state.candado}" title="Si lo activas, solo tú puedes capturar">${state.candado?'Solo yo capturo ✓':'Solo yo capturo'}</button><button class="btn" id="terminarBtn">Volver a la sala</button></span>`:''}`;
+  }
+  // Llega un cambio de la sala: si solo cambiaron puntos, se actualizan las casillas sin perder lo que alguien escribe
+  function aplicarRemoto(n,info){
+    const firma=x=>JSON.stringify([x.title,x.rule,!!x.candado,x.players,x.rounds]);
+    const ganeControl=cargado&&info.soyAnfitrion&&!soyAnf;
+    const cambioRol=info.soyAnfitrion!==soyAnf||info.yo!==yo, nuevaRonda=cargado&&n.rounds.length>state.rounds.length;
+    const estructura=!cargado||cambioRol||firma(n)!==firma(state);
+    soyAnf=info.soyAnfitrion;yo=info.yo;anfNombre=info.nombreAnfitrion||'';
+    n.bestPick=state.bestPick;state=n;
+    document.body.classList.toggle('jugador-sala',!soyAnf);
+    if(nuevaRonda){quickRound=state.rounds.at(-1).id;if(!soyAnf)showToast(`Nueva ronda: ${state.rounds.at(-1).name}`)}
+    if(!cargado){cargado=true;document.body.classList.remove('cargando');if(IS_DISPLAY)pintarEsquina()}
+    if(IS_DISPLAY){renderBoard();return}
+    if(ganeControl)showToast('Ahora tú tienes el control del marcador',3500);
+    if(!estructura){
+      $$('.score').forEach(i=>{if(i!==document.activeElement)i.value=raw(i.dataset.player,i.dataset.round)??''});
+      renderSide();return;
+    }
+    // Se vuelve a pintar todo, conservando la casilla donde está escribiendo
+    const a=document.activeElement;let foco=null;
+    if(a?.matches?.(EDITABLE)){
+      const sel=a.id?'#'+a.id:[...a.attributes].filter(x=>x.name.startsWith('data-')).map(x=>`[${x.name}="${CSS.escape(x.value)}"]`).join('');
+      foco={sel,cont:a.closest('#quickList,#scoreBody,#scoreHead')?.id,valor:a.value,ini:a.selectionStart,fin:a.selectionEnd};
+    }
+    render();
+    if(foco){
+      const e=$((foco.cont?'#'+foco.cont+' ':'')+foco.sel);
+      if(e&&!e.readOnly){e.value=foco.valor;e.focus();try{e.setSelectionRange(foco.ini,foco.fin)}catch{}}
+    }
+  }
+  function pintarEsquina(){
+    const u=new URL('../sala/',location.href);for(const k of ['local','sdk','emulador','emuauth'])if(Q.has(k))u.searchParams.set(k,Q.get(k));u.searchParams.set('c',SALA);
+    $('#salaEsquina').innerHTML=`<canvas id="salaQR"></canvas><div><span>Para sumarte</span><b>${esc(SALA)}</b></div>`;
+    if(typeof qrcode!=='function')return;
+    const q=qrcode(0,'M');q.addData(u.toString());q.make();
+    const n=q.getModuleCount(),m=2,cv=$('#salaQR'),c=cv.getContext('2d');cv.width=cv.height=n+m*2;
+    c.fillStyle=css.getPropertyValue('--carta').trim()||'#fff';c.fillRect(0,0,cv.width,cv.height);c.fillStyle=css.getPropertyValue('--tinta').trim()||'#000';
+    for(let f=0;f<n;f++)for(let k=0;k<n;k++)if(q.isDark(f,k))c.fillRect(k+m,f+m,1,1);
+  }
+  let candadoPantalla=null;
+  async function mantenerEncendida(){try{if(!candadoPantalla&&'wakeLock' in navigator&&document.visibilityState==='visible'){candadoPantalla=await navigator.wakeLock.request('screen');candadoPantalla.addEventListener('release',()=>{candadoPantalla=null})}}catch{}}
+  async function conectarSala(){
+    document.body.classList.add('en-sala','cargando');
+    const irSala=()=>{const u=new URL('../sala/',location.href);for(const k of ['local','sdk','emulador','emuauth'])if(Q.has(k))u.searchParams.set(k,Q.get(k));u.searchParams.set('c',SALA);if(IS_DISPLAY)u.searchParams.set('rol','pantalla');location.replace(u.toString())};
+    if(IS_DISPLAY){mantenerEncendida();document.addEventListener('visibilitychange',mantenerEncendida)}
+    try{
+      const {enlazar}=await import('./sala-marcador.js');
+      enlace=await enlazar(SALA,{pantalla:IS_DISPLAY,alCambiar:aplicarRemoto,alIrse:irSala});
+    }catch(e){console.error(e);document.body.classList.remove('cargando');showToast('No pudimos abrir la sala. Revisa tu conexión.',6000)}
+  }
+  document.addEventListener('click',async e=>{
+    if(e.target.closest('#candadoBtn')&&soyAnf){state.candado=!state.candado;save();render();showToast(state.candado?'Listo: solo tú capturas los puntos':'Listo: cada quien anota sus puntos')}
+    if(e.target.closest('#terminarBtn')&&soyAnf&&confirm('¿Volver a la sala? Los puntos se guardan y pueden seguir después.'))await enlace?.terminar();
+  });
+  if(EN_SALA)conectarSala();
+
   if(IS_DISPLAY){
     document.body.classList.add('display');
     let lastJSON='';
@@ -489,12 +592,12 @@
     return;
   }
 
-  function addPlayer(){const input=$('#playerInput'),name=input.value.trim();if(!name)return;snapshot();const used=new Set(state.players.map(p=>p.color));state.players.push({id:uid(),name,color:COLORS.find(c=>!used.has(c))||COLORS[state.players.length%COLORS.length]});input.value='';save();render();input.focus()}
+  function addPlayer(){if(!esAnf())return;const input=$('#playerInput'),name=input.value.trim();if(!name)return;snapshot();const used=new Set(state.players.map(p=>p.color));state.players.push({id:uid(),name,color:COLORS.find(c=>!used.has(c))||COLORS[state.players.length%COLORS.length]});input.value='';save();render();input.focus()}
   $('#playerBtn').onclick=addPlayer;$('#playerInput').addEventListener('keydown',e=>{if(e.key==='Enter')addPlayer()});
-  $('#roundBtn').onclick=()=>{snapshot();const r={id:uid(),name:`Ronda ${state.rounds.length+1}`};state.rounds.push(r);quickRound=r.id;sel=0;save();render()};
+  $('#roundBtn').onclick=()=>{if(!esAnf())return;snapshot();const r={id:uid(),name:`Ronda ${state.rounds.length+1}`};state.rounds.push(r);quickRound=r.id;sel=0;save();render()};
   function stepRound(d){const j=state.rounds.findIndex(r=>r.id===quickRound)+d;if(j<0||j>=state.rounds.length)return;quickRound=state.rounds[j].id;renderQuick();renderSide()}
   function setTab(t){document.body.dataset.tab=t;store.set(TAB_KEY,t);$$('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));scrollTo(0,0);if(t==='tabla')$('.table-wrap').scrollLeft=1e6;renderBoard()}
-  function setScore(pid,rid,v){snapshot();(state.scores[pid]??={})[rid]=v;save();$$(cellSel(pid,rid)).forEach(i=>i.value=v);renderSide()}
+  function setScore(pid,rid,v){if(!puedeEditar(pid)){showToast(state.candado?'Solo el anfitrión captura en este juego':'Solo puedes anotar tus puntos');return}snapshot();(state.scores[pid]??={})[rid]=v;save();$$(cellSel(pid,rid)).forEach(i=>i.value=v);renderSide()}
 
   // Atajos para manejarlo de lejos con un teclado inalámbrico (también llegan desde la ventana de pantalla)
   function shortcut({key,ctrl}){
@@ -580,19 +683,19 @@
       else{hiddenSeries.has(t.dataset.sid)?hiddenSeries.delete(t.dataset.sid):hiddenSeries.add(t.dataset.sid);renderChart()}
     }
     if(t.dataset.bump){const pid=t.dataset.bump;setScore(pid,quickRound,String(points(pid,quickRound)+Number(t.dataset.amt)))}
-    if(t.dataset.delPlayer){if(!confirm('¿Eliminar este jugador y todos sus puntos?'))return;snapshot();state.players=state.players.filter(p=>p.id!==t.dataset.delPlayer);delete state.scores[t.dataset.delPlayer];save();render()}
-    if(t.dataset.delRound){if(state.rounds.length===1){alert('Debe existir al menos una ronda.');return}if(!confirm('¿Eliminar esta ronda y sus puntos?'))return;snapshot();state.rounds=state.rounds.filter(r=>r.id!==t.dataset.delRound);Object.values(state.scores).forEach(s=>delete s[t.dataset.delRound]);save();render()}
+    if(t.dataset.delPlayer){const dp=state.players.find(p=>p.id===t.dataset.delPlayer);if(!esAnf()||!confirm(EN_SALA&&dp?.celular?`¿Sacar a ${dp.name} de la sala y borrar sus puntos?`:'¿Eliminar este jugador y todos sus puntos?'))return;snapshot();state.players=state.players.filter(p=>p.id!==t.dataset.delPlayer);delete state.scores[t.dataset.delPlayer];save();render()}
+    if(t.dataset.delRound){if(!esAnf())return;if(state.rounds.length===1){alert('Debe existir al menos una ronda.');return}if(!confirm('¿Eliminar esta ronda y sus puntos?'))return;snapshot();state.rounds=state.rounds.filter(r=>r.id!==t.dataset.delRound);Object.values(state.scores).forEach(s=>delete s[t.dataset.delRound]);save();render()}
   });
   $('#undoBtn').onclick=undo;$('#helpBtn').onclick=()=>toggleHelp(true);
   $('#screenBtn').onclick=openDisplay;
   $('#splitBtn').onclick=()=>{splitManual=!document.body.classList.contains('split');applyLayout()};
-  $('#resetBtn').onclick=()=>{if(confirm('¿Crear un juego nuevo? Podrás recuperarlo con “Deshacer” mientras no cierres la página.')){snapshot();state=defaultState();save();render()}};
+  $('#resetBtn').onclick=()=>{if(!esAnf())return;if(confirm(EN_SALA?'¿Empezar de cero? Se quedan los jugadores y se borran las rondas y los puntos. Podrás recuperarlo con “Deshacer” mientras no cierres la página.':'¿Crear un juego nuevo? Podrás recuperarlo con “Deshacer” mientras no cierres la página.')){snapshot();state=EN_SALA?{...state,rounds:[{id:uid(),name:'Ronda 1'}],scores:{}}:defaultState();quickRound=state.rounds[0].id;save();render()}};
   $('#csvBtn').onclick=()=>{
     const rows=[['Jugador',...state.rounds.map(r=>r.name),'Total'],...state.players.map(p=>[p.name,...state.rounds.map(r=>raw(p.id,r.id)??''),total(p.id)])];
     const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`${(state.title||'marcador').replace(/[\\/:*?"<>|]/g,'')}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   };
-  const dlg=$('#backupDialog');$('#backupBtn').onclick=()=>{$('#backupText').value=JSON.stringify(state,null,2);dlg.showModal()};$('#closeBackup').onclick=()=>dlg.close();$('#copyBackup').onclick=async()=>{await navigator.clipboard.writeText($('#backupText').value);$('#copyBackup').textContent='Copiado';setTimeout(()=>$('#copyBackup').textContent='Copiar',1200)};$('#importBackup').onclick=()=>{let x=null;try{x=normalize(JSON.parse($('#backupText').value))}catch{}if(!x){alert('El respaldo no tiene un formato válido.');return}snapshot();state=x;save();render();dlg.close()};
+  const dlg=$('#backupDialog');$('#backupBtn').onclick=()=>{$('#backupText').value=JSON.stringify(state,null,2);dlg.showModal()};$('#closeBackup').onclick=()=>dlg.close();$('#copyBackup').onclick=async()=>{await navigator.clipboard.writeText($('#backupText').value);$('#copyBackup').textContent='Copiado';setTimeout(()=>$('#copyBackup').textContent='Copiar',1200)};$('#importBackup').onclick=()=>{if(!esAnf())return;let x=null;try{x=normalize(JSON.parse($('#backupText').value))}catch{}if(!x){alert('El respaldo no tiene un formato válido.');return}snapshot();state=x;save();render();dlg.close()};
   addEventListener('resize',applyLayout);
   $('#chartCard').addEventListener('pointerdown',e=>{chartTouch=e.pointerType==='touch'});
   $('#chartCard').addEventListener('pointerover',e=>{if(e.pointerType!=='touch')focusSeries(e.target.closest('[data-sid]')?.dataset.sid)});

@@ -1,6 +1,7 @@
 // La Sobremesa · página de sala (jugador o pantalla)
 import { hayFirebase } from '../nucleo/datos.js';
 import { crearSala, existeSala, abrirSala, normalizarCodigo, codigoValido, perfilGuardado } from '../nucleo/sala.js';
+import { estadoInicial as marcadorInicial } from '../marcador/sala-marcador.js';
 
 const params = new URLSearchParams(location.search);
 const $app = document.getElementById('app');
@@ -11,7 +12,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '
 const inicial = (n) => esc(String(n || '?').trim().charAt(0).toUpperCase());
 
 const JUEGOS = [
-  { id: 'marcador', nombre: 'Marcador', desc: 'Puntos por ronda desde cada celular', ic: '#', pronto: true },
+  { id: 'marcador', nombre: 'Marcador', desc: 'Puntos por ronda; cada quien anota los suyos', ic: '#', pagina: '../marcador/' },
   { id: 'llena-el-hueco', nombre: 'Llena el hueco', desc: 'Cartas · 4 a 9 jugadores · adultos', ic: '¿?', pronto: true }
 ];
 
@@ -92,6 +93,12 @@ const enlaceSala = () => direccion({ c: ui.codigo }, location.pathname);
 
 function pintar(st) {
   if (!st) return;
+  // Si ya hay un juego en marcha, los jugadores sentados y las pantallas se van a él
+  const juego = JUEGOS.find((j) => j.id === st.juego && j.pagina);
+  if (juego && !ui.editando && (st.rol === 'pantalla' || (st.rol === 'jugador' && st.jugadores[st.yo]))) {
+    location.replace(direccion({ sala: ui.codigo, rol: st.rol === 'pantalla' ? 'pantalla' : null }, juego.pagina));
+    return;
+  }
   let vista;
   if (st.rol === 'pantalla') vista = 'pantalla';
   else if (st.rol === 'jugador' && st.jugadores[st.yo] && !ui.editando) vista = 'espera';
@@ -186,7 +193,7 @@ function pintarEspera(st) {
     </div>`;
   }).join('');
   const juegos = st.soyAnfitrion
-    ? `<span class="etiqueta">Elige el juego</span><div class="juegos">${JUEGOS.map((j) => `<button class="juego" data-accion="juego" data-juego="${j.id}" ${j.pronto ? 'disabled' : ''}><span class="ic">${j.ic}</span><div><strong>${j.nombre}</strong><span>${j.desc}</span></div>${j.pronto ? '<span class="insignia">Pronto</span>' : ''}</button>`).join('')}</div>`
+    ? `<span class="etiqueta">Elige el juego</span><div class="juegos">${JUEGOS.map((j) => `<button class="juego" data-accion="juego" data-juego="${j.id}" ${j.pronto ? 'disabled' : ''}><span class="ic">${j.ic}</span><div><strong>${j.nombre}</strong><span>${j.id === 'marcador' && st.estado?.tipo === 'marcador' ? 'Seguir con los puntos de esta sala' : j.desc}</span></div>${j.pronto ? '<span class="insignia">Pronto</span>' : '<span class="ir">Jugar ›</span>'}</button>`).join('')}</div>`
     : `<div class="panel espera">Esperando a que <b>${esc(st.nombreAnfitrion || 'el anfitrión')}</b> elija el juego…</div>`;
   $app.innerHTML = `<main class="jugador">
     ${barra(st)}
@@ -267,7 +274,12 @@ document.addEventListener('click', async (e) => {
       if (b.dataset.confirmar !== '1') { b.dataset.confirmar = '1'; b.textContent = '¿Seguro?'; setTimeout(() => { if (b.isConnected) { b.dataset.confirmar = ''; b.textContent = 'Sacar'; } }, 3000); break; }
       await s.sacarJugador(b.dataset.uid); aviso(`${x?.nombre || 'Jugador'} salió de la mesa`); break;
     }
-    case 'juego': await s.elegirJuego(b.dataset.juego); break;
+    case 'juego': {
+      // El marcador conserva sus puntos si ya se estaba jugando en esta sala
+      if (b.dataset.juego === 'marcador' && st.estado?.tipo !== 'marcador') await s.iniciarJuego('marcador', marcadorInicial());
+      else await s.elegirJuego(b.dataset.juego);
+      break;
+    }
   }
 });
 

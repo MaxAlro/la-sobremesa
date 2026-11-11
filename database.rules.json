@@ -34,6 +34,15 @@
               "$otro": { ".validate": false }
             }
           },
+          "puntos": {
+            ".write": "auth != null && data.parent().child('anfitrion').val() == auth.uid",
+            "$jugador": {
+              "$ronda": {
+                ".write": "auth != null && $jugador == auth.uid && data.parent().parent().parent().child('jugadores').child(auth.uid).exists() && data.parent().parent().parent().child('estado/candado').val() != true",
+                ".validate": "newData.isString() && newData.val().length <= 12"
+              }
+            }
+          },
           "pantallas": {
             "$uid": {
               ".write": "auth != null && $uid == auth.uid && data.parent().parent().exists()",
