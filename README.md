@@ -37,7 +37,7 @@ database.rules.json reglas de seguridad de Firebase
 Las salas usan Firebase Realtime Database con acceso anónimo, en el plan gratuito (Spark).
 Para conectarlo: crea el proyecto, activa *Authentication → Anónimo* y *Realtime Database*,
 pega el bloque `firebaseConfig` en `nucleo/config.js` y copia `database.rules.json` en
-*Realtime Database → Reglas*. Mientras `FIREBASE_CONFIG` sea `null`, la página dice que las salas vienen pronto.
+*Realtime Database → Reglas*. Si `FIREBASE_CONFIG` es `null`, la página dice que las salas vienen pronto.
 
 Una sala con 24 horas sin actividad se borra cuando una sala nueva saca el mismo código al azar.
 
