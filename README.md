@@ -33,7 +33,7 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
 - **El impostor** (`juegos/impostor/`): juego de deducción para 3 a 9 jugadores, con poca pantalla. Todos reciben
   en su celular la misma palabra secreta, menos el impostor. La tarjeta se ve solo mientras se mantiene el dedo encima,
   y tapada se ve igual en todos los celulares. Por turnos (al azar, pero el impostor nunca empieza) cada quien dice
-  una pista en voz alta; luego discuten y votan desde el celular, con reloj opcional. Si hay empate se vota otra vez
+  una pista en voz alta; luego discuten y votan desde el celular, con reloj opcional (grande arriba en cada celular; se pone rojo y vibra a los 30 y 10 segundos). Si hay empate se vota otra vez
   solo entre los empatados; si sigue, el impostor se salva. Si lo atrapan, tiene un intento para adivinar la palabra
   (se perdonan faltas de ortografía y el anfitrión puede corregir). Puntos: el impostor se salva +3; lo atrapan pero
   adivina +2; lo atrapan y falla, +1 para cada uno de los demás y +1 extra a quien votó por el impostor. Dos modos:
