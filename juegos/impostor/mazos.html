@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Mazos · El impostor</title>
+  <script src="../../nucleo/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Zilla+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../../nucleo/tema.css">
+  <link rel="stylesheet" href="../../nucleo/base.css">
+  <style>
+    main { max-width: 760px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 18px; }
+    .panel { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.2rem; }
+    .sub { margin: 0; color: var(--suave); font-size: .9rem; }
+    .error { color: var(--peligro); }
+    .fila { display: flex; gap: 8px; flex-wrap: wrap; }
+    .fila .campo { flex: 1; min-width: 180px; }
+    textarea.campo { min-height: 220px; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: .8rem; }
+    .mazo { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--superficie); border: 1px solid var(--linea); flex-wrap: wrap; }
+    .mazo div { flex: 1; display: flex; flex-direction: column; min-width: 200px; }
+    .mazo span { font-size: .8rem; color: var(--suave); }
+    .mazo .btn { padding: 6px 10px; font-size: .85rem; }
+    .insignia { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--superficie-2); color: var(--suave); margin-left: 6px; vertical-align: middle; }
+    .familias { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .familia { padding: 8px 10px; border-radius: 10px; background: var(--superficie); border: 1px solid var(--linea); font-size: .85rem; }
+    .familia b { display: block; margin-bottom: 4px; }
+    .familia ul { margin: 0; padding-left: 16px; color: var(--suave); }
+    .familia.sola { border-style: dashed; }
+    pre { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--fondo-3); font-size: .78rem; overflow-x: auto; color: var(--suave); }
+    code { background: var(--fondo-3); padding: 1px 5px; border-radius: 5px; }
+    .p { margin: 0; }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <a class="marca" href="../../">‹ La <em>Sobremesa</em></a>
+    <div><h1>Mazos de El impostor</h1><p class="sub">Los mazos incluidos vienen con el juego. Los tuyos se guardan en Firebase y aparecen al preparar una partida.</p></div>
+    <p class="sub oculto" id="notaLocal"></p>
+
+    <section class="panel">
+      <h2>Mazos</h2>
+      <div id="lista"><p class="sub">Cargando…</p></div>
+    </section>
+
+    <section class="panel">
+      <h2>1. Clave de administrador</h2>
+      <p class="sub">Solo una vez en cada dispositivo desde el que quieras guardar o borrar mazos. Es la misma clave de los otros mazos de La Sobremesa.</p>
+      <div class="fila"><input class="campo" id="clave" type="password" autocomplete="off" placeholder="Clave"><button class="btn" id="entrar">Entrar</button></div>
+      <p class="sub oculto" id="notaClave"></p>
+    </section>
+
+    <section class="panel" id="editor">
+      <h2>2. Armar o cambiar un mazo</h2>
+      <p class="p sub">Cada palabra lleva una descripción corta por si alguien no la conoce. Las palabras parecidas se agrupan en <b>familias</b>: en el modo Palabra parecida, el impostor recibe otra palabra de la misma familia. Una palabra sin familia solo sale en el modo Clásico.</p>
+      <pre>[Lácteos]
+Leche: Líquido blanco que dan las vacas.
+Queso: Se hace cuajando la leche.
+Crema batida: Crema batida con azúcar; se pone en los postres.
+
+[]
+Pozole: Caldo de maíz cacahuazintle con carne.</pre>
+      <p class="p sub">Un renglón entre corchetes abre una familia y <code>[]</code> la cierra. También puedes subir un CSV con las columnas <code>palabra,descripcion,familia</code>. Para cambiar un mazo, tócale <b>Editar</b> arriba; si guardas uno con el mismo nombre que un mazo incluido, el tuyo lo reemplaza.</p>
+      <div class="fila"><input class="campo" id="nombre" maxlength="40" placeholder="Nombre del mazo, por ejemplo Conspiraciones"></div>
+      <input class="campo" id="desc" maxlength="160" placeholder="Descripción del mazo: de qué trata (la ve el impostor)">
+      <input class="campo" id="archivo" type="file" accept=".csv,.txt,text/csv,text/plain">
+      <textarea class="campo" id="texto" spellcheck="false" placeholder="…o escribe o pega aquí las palabras"></textarea>
+      <div class="fila"><button class="btn" id="revisar">Revisar</button><button class="btn pri" id="guardar" disabled>Guardar mazo</button></div>
+      <div class="oculto" id="previa"></div>
+      <p class="sub oculto" id="notaImportar"></p>
+    </section>
+  </main>
+  <script type="module" src="mazos.js"></script>
+</body>
+</html>
