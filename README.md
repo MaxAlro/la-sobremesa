@@ -22,6 +22,14 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
   tele), los demás mandan su carta sin nombre, el juez las lee una por una y elige la más chistosa. Gana quien llegue
   a los puntos acordados (7 de inicio). Opciones: cartas en blanco y cambiar la mano por un punto. Al final, los
   puntos se pueden llevar al marcador.
+- **Basta** (`juegos/basta/`): juego de palabras para 2 a 9 jugadores. Sale una letra al azar (en la tele o arriba en
+  cada celular) y cada quien llena sus categorías en su celular. Quien llena todas puede cantar ¡Basta! y los demás
+  tienen 5 segundos. Luego se revisa categoría por categoría: cualquiera puede marcar una respuesta como "no vale" y se
+  anula si la marca la mayoría. Puntos automáticos: 100 si nadie más la puso, 50 si se repite, 0 si está vacía o no
+  empieza con la letra. Las repetidas se reconocen aunque tengan acentos, espacios o errores de ortografía (b/v, s/z/c,
+  y/ll, h muda, letras dobles, y una letra de diferencia en palabras largas); el anfitrión puede juntar o separar a
+  mano. Categorías, número de rondas, tiempo límite y letras difíciles se eligen al preparar. Al final, cada ronda pasa
+  al marcador con su letra.
 - **Mazos** (`juegos/llena-el-hueco/mazos.html`, también desde Ajustes): las cartas viven en Firebase, no en el
   código. Se cargan como CSV (`tipo,texto`) o texto con secciones `# Frases` y `# Respuestas`; el hueco se marca con
   `____`. Para guardar o borrar mazos hace falta la clave de administrador (ver abajo).
