@@ -418,11 +418,20 @@ function ultimas(st, e) {
   return `<div class="historial">${ap.map((a, i) => `<div class="hist ${i ? 'vieja' : ''}">${avatar(st, a.u)}<span>${tu(st, a.u)}</span>${apuestaHtml(a)}</div>`).join('')}</div>`;
 }
 
+// Lo que hay que tener presente para apostar: el total en la mesa (grande), los tuyos y la ronda
+function cifras(e, total, mios) {
+  return `<div class="cifras" role="group" aria-label="La mesa">
+    <div class="cifra mesa"><b>${total}</b><span>dados en la mesa</span></div>
+    <div class="cifra"><b>${mios}</b><span>${mios === 1 ? 'tuyo' : 'tuyos'}</span></div>
+    <div class="cifra"><b>${e.ronda}</b><span>ronda</span></div>
+  </div>`;
+}
+
 function apostando(st, e) {
   const ap = lista(e.apuestas), prev = ap[ap.length - 1], mio = e.turno === st.yo;
   const total = enMesa(e), mios = (e.dados || {})[st.yo] || 0;
   const banda = e.obligada ? `<div class="banda">Ronda de un dado: nadie puede cambiar de número${ap.length ? `, solo subir la cantidad de ${VARIOS[ap[0].n]}` : ''}.</div>` : '';
-  const cabeza = `<div class="cabeza"><span class="etiqueta">Ronda ${e.ronda} · ${total} dados en la mesa</span></div>${banda}`;
+  const cabeza = `${cifras(e, total, mios)}${banda}`;
   if (!mio) {
     const quien = esc(nombre(st, e.turno));
     return `${cabeza}
@@ -499,16 +508,24 @@ function manosHtml(st, e, d) {
   return `<div class="manos">${lista(e.orden).filter((u) => d.manos?.[u]).map((u) => {
     const ds = lista(d.manos[u]), k = ds.filter((x) => x === n).length;
     return `<div class="mano">${avatar(st, u)}<b>${tu(st, u)}</b><span class="fila-dados">${ds.map((x) => dado(x, x === n ? 'marca' : 'apagado')).join('')}</span><span class="cuenta ${k ? 'si' : ''}">${k}</span></div>`;
-  }).join('')}</div>`;
+  }).join('')}<div class="mano suma"><b>Total de ${VARIOS[n] || ''}</b><span class="cuenta si">${d.hay}</span></div></div>`;
 }
 
 function desenlace(st, e) {
   const d = e.desenlace || {}, vivos = lista(e.orden).filter((u) => (e.dados[u] || 0) > 0);
   const termina = vivos.length <= 1;
   const quien = d.pierde || d.gana, sigue = (e.dados[quien] || 0) > 0 ? quien : siguiente(e.orden, e.dados, quien);
+  const a = d.apuesta || {}, signo = d.hay === a.c ? '=' : d.hay < a.c ? '>' : '<';
+  const enJuego = Object.values(d.manos || {}).reduce((s, x) => s + lista(x).length, 0);
   return `<div class="panel resumen"><span class="etiqueta">${d.t === 'calzo' ? '¡Calzo!' : '¡Dudo!'} · Ronda ${e.ronda}</span>
-      <h2 class="titulo">${resultadoTexto(st, e, d)}</h2>
-      <span class="sub">${frase(st, e, d)}. ${porQue(st, e, d)}</span></div>
+      <span class="sub">${frase(st, e, d)}</span>
+      <div class="comparar">
+        <div class="lado"><span>${d.t === 'calzo' ? 'Calzó' : 'Apostó'}</span>${apuestaHtml(a, 'grande')}</div>
+        <b class="signo" aria-hidden="true">${signo}</b>
+        <div class="lado hay"><span>Había</span><b>${d.hay}</b><small>de ${enJuego} en la mesa</small></div>
+      </div>
+      <h2 class="titulo veredicto ${d.gana ? 'bien' : ''}">${resultadoTexto(st, e, d)}</h2>
+      <span class="sub">${porQue(st, e, d)}</span></div>
     ${manosHtml(st, e, d)}
     <span class="etiqueta">Así va la mesa</span>
     ${mesa(st, e, false)}
