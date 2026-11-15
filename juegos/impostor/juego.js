@@ -39,7 +39,7 @@ const CODIGO = (Q.get('sala') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(
 const PANTALLA = Q.get('rol') === 'pantalla';
 const DE_PRUEBA = ['local', 'sdk', 'emulador', 'emuauth'];
 
-const MIN_JUG = 3, MIN_DOS = 7;  // jugadores para empezar y para jugar con 2 impostores
+const MIN_JUG = 3, MIN_DOS = 7, MAX_JUG = 9;  // jugadores para empezar y para jugar con 2 impostores
 const DESEMPATE = 60;            // segundos para votar el desempate cuando hay reloj
 const OPCIONES = { mazos: ELEGIDOS_DE_INICIO, modo: 'clasico', impostores: 1, vueltas: 2, tiempo: 120 };
 const TIEMPOS = [[0, 'Sin límite'], [120, '2 min'], [180, '3 min']];
@@ -369,6 +369,7 @@ async function repartir(opciones, ronda, puntos, historial) {
   if (!ui.mazos) await cargarMazos();
   const jug = st.lista.filter((j) => j.conectado).map((j) => j.uid);
   if (jug.length < MIN_JUG) return aviso(`Se necesitan al menos ${MIN_JUG} jugadores`);
+  if (jug.length > MAX_JUG) return aviso(`El impostor es para ${MAX_JUG} jugadores como máximo`);
   const sorteo = sortear(opciones, ui.secreto?.usadas);
   if (!sorteo) return aviso(opciones.modo === 'parecida' ? 'Los mazos elegidos no tienen familias de palabras' : 'Elige al menos un mazo con palabras');
   const n = opciones.impostores === 2 && jug.length >= MIN_DOS ? 2 : 1;
@@ -514,7 +515,7 @@ function preparar(st, e) {
   const elegidos = mazosElegidos(p), palabras = elegidos.reduce((a, m) => a + m.palabras.length, 0);
   const conFam = hayFamilias(p), dosOk = conectados >= MIN_DOS;
   const modo = p.modo === 'parecida' && !conFam ? 'clasico' : p.modo;
-  const puede = conectados >= MIN_JUG && elegidos.length > 0;
+  const puede = conectados >= MIN_JUG && conectados <= MAX_JUG && elegidos.length > 0;
   return `<div class="panel prep">
     <h1 class="titulo">El impostor</h1>
     <span class="etiqueta">Mazos · ${elegidos.length} de ${ui.mazos.length} · ${palabras} palabras</span>
@@ -530,7 +531,7 @@ function preparar(st, e) {
     <div class="segmentos">${TIEMPOS.map(([s, t]) => `<button class="btn" data-accion="tiempo" data-s="${s}" aria-pressed="${p.tiempo === s}">${t}</button>`).join('')}</div>
     ${conservados ? `<p class="sub">Los puntos de las ${e.ronda || ''} rondas anteriores se conservan.</p>` : ''}
   </div>
-  <div class="pie"><button class="btn pri grande" data-accion="empezar" ${puede ? '' : 'disabled'}>${conectados < MIN_JUG ? `Faltan ${MIN_JUG - conectados} para empezar (mínimo ${MIN_JUG})` : !elegidos.length ? 'Elige al menos un mazo' : `Repartir a ${conectados}`}</button></div>
+  <div class="pie"><button class="btn pri grande" data-accion="empezar" ${puede ? '' : 'disabled'}>${conectados < MIN_JUG ? `Faltan ${MIN_JUG - conectados} para empezar (mínimo ${MIN_JUG})` : conectados > MAX_JUG ? `Máximo ${MAX_JUG} jugadores · hay ${conectados}` : !elegidos.length ? 'Elige al menos un mazo' : `Repartir a ${conectados}`}</button></div>
   ${reglasCortas()}`;
 }
 

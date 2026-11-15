@@ -17,6 +17,8 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
   desde su celular y ve cómo van; el anfitrión tiene todas las funciones del marcador (rondas, jugadores sin celular,
   corregir cualquier puntaje, deshacer) y puede activar "Solo yo capturo". La tele muestra el marcador grande con el
   código para sumarse. Al volver a la sala los puntos se guardan para seguir después.
+- **Lugares en la sala:** caben hasta 12 personas (una por color). El marcador acepta a las 12; los demás juegos son
+  de 9 como máximo y en la sala aparecen desactivados mientras haya más de 9 conectados.
 - **Llena el hueco** (`juegos/llena-el-hueco/`): juego de cartas para adultos, de 3 a 9 jugadores. Cada quien tiene
   7 respuestas en su celular; un juez que rota lee la frase con hueco (en la tele, o arriba en cada celular si no hay
   tele), los demás mandan su carta sin nombre, el juez las lee una por una y elige la más chistosa. Gana quien llegue

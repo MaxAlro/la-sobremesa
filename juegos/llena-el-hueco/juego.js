@@ -20,6 +20,7 @@ const Q = new URLSearchParams(location.search);
 const CODIGO = (Q.get('sala') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
 const PANTALLA = Q.get('rol') === 'pantalla';
 const MANO = 7;
+const MAX_JUG = 9;
 const DE_PRUEBA = ['local', 'sdk', 'emulador', 'emuauth'];
 const OPCIONES = { meta: 7, blancas: true, cambio: true };
 
@@ -328,6 +329,7 @@ async function empezar() {
   const opciones = { meta: ui.prep.meta, blancas: ui.prep.blancas, cambio: ui.prep.cambio };
   const jugadores = st.lista.filter((j) => j.conectado);
   if (jugadores.length < 3) return aviso('Se necesitan al menos 3 jugadores');
+  if (jugadores.length > MAX_JUG) return aviso(`Llena el hueco es para ${MAX_JUG} jugadores como máximo`);
   const M = { pilaF: barajar(mazo.frases.map((_, i) => i)), pilaR: barajar(todasLasRespuestas(opciones.blancas)), manos: {} };
   const orden = jugadores.map((j) => j.uid);
   for (const u of orden) M.manos[u] = robar(M, MANO, opciones);
@@ -415,7 +417,7 @@ function preparar(st, e) {
     <div class="contador"><button class="btn" data-accion="meta" data-d="-1" aria-label="Menos">−</button><b>${ui.prep.meta}</b><button class="btn" data-accion="meta" data-d="1" aria-label="Más">+</button></div>
     <label class="interruptor"><input type="checkbox" data-accion="op" data-op="blancas" ${ui.prep.blancas ? 'checked' : ''}><span><b>Cartas en blanco</b><small>De vez en cuando te toca una carta para escribir tu propia respuesta.</small></span></label>
     <label class="interruptor"><input type="checkbox" data-accion="op" data-op="cambio" ${ui.prep.cambio ? 'checked' : ''}><span><b>Cambiar cartas por un punto</b><small>Quien tenga puntos puede cambiar toda su mano a cambio de uno.</small></span></label>
-    <button class="btn pri grande" data-accion="empezar" ${conectados < 3 || !ui.prep.mazo ? 'disabled' : ''}>${conectados < 3 ? `Faltan ${3 - conectados} para empezar` : `Empezar con ${conectados}`}</button>
+    <button class="btn pri grande" data-accion="empezar" ${conectados < 3 || conectados > MAX_JUG || !ui.prep.mazo ? 'disabled' : ''}>${conectados < 3 ? `Faltan ${3 - conectados} para empezar` : conectados > MAX_JUG ? `Máximo ${MAX_JUG} jugadores · hay ${conectados}` : `Empezar con ${conectados}`}</button>
     <a class="enlace" href="${esc(direccion('mazos.html'))}">Administrar mazos</a>
   </div>${reglasCortas()}`;
 }

@@ -7,16 +7,19 @@ const params = new URLSearchParams(location.search);
 const $app = document.getElementById('app');
 const css = getComputedStyle(document.documentElement);
 const token = (n) => css.getPropertyValue(n).trim();
-const COLORES = Array.from({ length: 10 }, (_, i) => token(`--jugador-${i + 1}`)).filter(Boolean);
+const COLORES = Array.from({ length: 12 }, (_, i) => token(`--jugador-${i + 1}`)).filter(Boolean);
 const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
 const inicial = (n) => esc(String(n || '?').trim().charAt(0).toUpperCase());
 
+// Lugares en la mesa (uno por color). Cada juego puede tener su propio máximo (max); el marcador acepta a todos.
+const LUGARES = 12;
+
 const JUEGOS = [
-  { id: 'marcador', nombre: 'Marcador', desc: 'Puntos por ronda; cada quien anota los suyos', ic: '#', pagina: '../marcador/' },
-  { id: 'llena-el-hueco', nombre: 'Llena el hueco', desc: 'Cartas · 3 a 9 jugadores · adultos', ic: '¿?', pagina: '../juegos/llena-el-hueco/', tipo: 'llena' },
-  { id: 'basta', nombre: 'Basta', desc: 'Palabras · 2 a 9 jugadores · todas las edades', ic: 'B', pagina: '../juegos/basta/', tipo: 'basta' },
-  { id: 'impostor', nombre: 'El impostor', desc: 'Deducción · 3 a 9 jugadores · todas las edades', ic: '?', pagina: '../juegos/impostor/', tipo: 'impostor' },
-  { id: 'dudo', nombre: 'Dudo', desc: 'Dados y blofeo · 2 a 9 jugadores · todas las edades', ic: 'D', pagina: '../juegos/dudo/', tipo: 'dudo' }
+  { id: 'marcador', nombre: 'Marcador', desc: 'Puntos por ronda · hasta 12 jugadores', ic: '#', pagina: '../marcador/' },
+  { id: 'llena-el-hueco', nombre: 'Llena el hueco', desc: 'Cartas · 3 a 9 jugadores · adultos', ic: '¿?', pagina: '../juegos/llena-el-hueco/', tipo: 'llena', max: 9 },
+  { id: 'basta', nombre: 'Basta', desc: 'Palabras · 2 a 9 jugadores · todas las edades', ic: 'B', pagina: '../juegos/basta/', tipo: 'basta', max: 9 },
+  { id: 'impostor', nombre: 'El impostor', desc: 'Deducción · 3 a 9 jugadores · todas las edades', ic: '?', pagina: '../juegos/impostor/', tipo: 'impostor', max: 9 },
+  { id: 'dudo', nombre: 'Dudo', desc: 'Dados y blofeo · 2 a 9 jugadores · todas las edades', ic: 'D', pagina: '../juegos/dudo/', tipo: 'dudo', max: 9 }
 ];
 
 // Parámetros de prueba que se conservan al cambiar de dirección
@@ -96,6 +99,8 @@ const enlaceSala = () => direccion({ c: ui.codigo }, location.pathname);
 
 // Hay una partida a medias de ese juego (para seguirla en vez de empezar otra)
 const enCurso = (st, juego) => !!juego?.tipo && st.estado?.tipo === juego.tipo && st.estado.fase !== 'fin' && st.estado.fase !== 'preparando';
+const conectados = (st) => st.lista.filter((x) => x.conectado).length;
+const demasiados = (st, juego) => !!juego?.max && conectados(st) > juego.max;
 
 function pintar(st) {
   if (!st) return;
@@ -199,7 +204,12 @@ function pintarEspera(st) {
     </div>`;
   }).join('');
   const juegos = st.soyAnfitrion
-    ? `<span class="etiqueta">Elige el juego</span><div class="juegos">${JUEGOS.map((j) => `<button class="juego" data-accion="juego" data-juego="${j.id}" ${j.pronto ? 'disabled' : ''}><span class="ic">${j.ic}</span><div><strong>${j.nombre}</strong><span>${j.id === 'marcador' && st.estado?.tipo === 'marcador' ? 'Seguir con los puntos de esta sala' : enCurso(st, j) ? 'Seguir con la partida' : j.desc}</span></div>${j.pronto ? '<span class="insignia">Pronto</span>' : '<span class="ir">Jugar ›</span>'}</button>`).join('')}</div>`
+    ? `<span class="etiqueta">Elige el juego</span><div class="juegos">${JUEGOS.map((j) => {
+      const sigue = j.id === 'marcador' && st.estado?.tipo === 'marcador' ? 'Seguir con los puntos de esta sala' : enCurso(st, j) ? 'Seguir con la partida' : '';
+      const lleno = !sigue && demasiados(st, j);
+      const desc = sigue || (lleno ? `Hasta ${j.max} jugadores · hay ${conectados(st)} en la mesa` : j.desc);
+      return `<button class="juego" data-accion="juego" data-juego="${j.id}" ${j.pronto || lleno ? 'disabled' : ''}><span class="ic">${j.ic}</span><div><strong>${j.nombre}</strong><span>${desc}</span></div>${j.pronto ? '<span class="insignia">Pronto</span>' : lleno ? `<span class="insignia">Máx. ${j.max}</span>` : '<span class="ir">Jugar ›</span>'}</button>`;
+    }).join('')}</div>`
     : `<div class="panel espera">Esperando a que <b>${esc(st.nombreAnfitrion || 'el anfitrión')}</b> elija el juego…</div>`;
   $app.innerHTML = `<main class="jugador">
     ${barra(st)}
@@ -221,7 +231,7 @@ document.addEventListener('visibilitychange', () => { if (ui.vista === 'pantalla
 function pintarPantalla(st) {
   const enMesa = st.lista;
   const asientos = enMesa.map((x) => `<div class="asiento ${x.conectado ? '' : 'fuera'}"><span class="av" style="background:${esc(x.color)}">${inicial(x.nombre)}</span><span>${esc(x.nombre)}</span></div>`).join('')
-    + Array.from({ length: Math.max(0, 9 - enMesa.length) }, () => '<div class="asiento libre">Lugar libre</div>').join('');
+    + Array.from({ length: Math.max(0, LUGARES - enMesa.length) }, () => '<div class="asiento libre">Lugar libre</div>').join('');
   const juego = JUEGOS.find((j) => j.id === st.juego);
   const estado = juego
     ? `<div><strong>${esc(juego.nombre)}</strong><span>Empezando…</span></div>`
@@ -230,7 +240,7 @@ function pintarPantalla(st) {
       : `<div><strong>Escanea el código para sentarte</strong><span>El primero que entre será el anfitrión</span></div>`;
   const dir = enlaceSala().replace(/^https?:\/\//, '').replace(/\/sala\/.*$/, '');
   $app.innerHTML = `<div class="pantalla">
-    <div class="p-arriba"><span class="marca">La <em>Sobremesa</em></span><span>${enMesa.length} de 9 lugares</span></div>
+    <div class="p-arriba"><span class="marca">La <em>Sobremesa</em></span><span>${enMesa.length} de ${LUGARES} lugares</span></div>
     <div class="p-cuerpo">
       <div class="p-unirse">
         <div class="qr"><canvas id="qr"></canvas></div>
@@ -286,6 +296,7 @@ document.addEventListener('click', async (e) => {
       // Los juegos siguen la partida si quedó a medias; si no, empiezan a prepararla
       else {
         const j = JUEGOS.find((x) => x.id === b.dataset.juego);
+        if (!enCurso(st, j) && demasiados(st, j)) { aviso(`${j.nombre} es para ${j.max} jugadores como máximo`); break; }
         if (j?.tipo && !enCurso(st, j)) await s.iniciarJuego(j.id, { tipo: j.tipo, fase: 'preparando' });
         else await s.elegirJuego(b.dataset.juego);
       }

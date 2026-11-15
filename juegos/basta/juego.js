@@ -34,6 +34,7 @@ const MARGEN = 1500;   // ms extra para que lleguen las últimas respuestas
 const SORTEO = 3000;   // ms que gira la letra antes de verse
 const LARGO = 40;      // letras por respuesta
 const MIN_CAT = 3, MAX_CAT = 12;
+const MAX_JUG = 9;
 const FACILES = 'ABCDEFGHIJLMNOPRSTUV', DIFICILES = 'KQWXYZ';
 const CLASICAS = ['Nombre', 'Apellido', 'Ciudad o país', 'Animal', 'Fruta o verdura', 'Color', 'Cosa'];
 const SUGERENCIAS = ['Famoso', 'Comida', 'Marca', 'Película o serie', 'Profesión', 'Parte del cuerpo', 'Deporte', 'Canción o cantante', 'Flor o planta', 'Algo de la cocina', 'Excusa para llegar tarde', 'Apodo'];
@@ -328,6 +329,7 @@ async function empezar() {
   if (categorias.length < MIN_CAT) return aviso(`Pon al menos ${MIN_CAT} categorías`);
   const jugadores = st.lista.filter((j) => j.conectado);
   if (jugadores.length < 2) return aviso('Se necesitan al menos 2 jugadores');
+  if (jugadores.length > MAX_JUG) return aviso(`Basta es para ${MAX_JUG} jugadores como máximo`);
   const opciones = { rondas: p.rondas, tiempo: p.tiempo, dificiles: p.dificiles };
   guardarPrep();
   const orden = jugadores.map((j) => j.uid);
@@ -426,7 +428,7 @@ function preparar(st, e) {
   iniciarPrep(e);
   const p = ui.prep, conectados = st.lista.filter((j) => j.conectado).length;
   const sugeridas = SUGERENCIAS.concat(CLASICAS).filter((s) => !p.categorias.some((c) => base(c) === base(s)));
-  const puede = conectados >= 2 && p.categorias.length >= MIN_CAT;
+  const puede = conectados >= 2 && conectados <= MAX_JUG && p.categorias.length >= MIN_CAT;
   return `<div class="panel prep">
     <h1 class="titulo">Basta</h1>
     <span class="etiqueta">Categorías · ${p.categorias.length}</span>
@@ -438,7 +440,7 @@ function preparar(st, e) {
     <span class="etiqueta">Tiempo por ronda</span>
     <div class="segmentos">${TIEMPOS.map(([s, t]) => `<button class="btn" data-accion="tiempo" data-s="${s}" aria-pressed="${p.tiempo === s}">${t}</button>`).join('')}</div>
     <label class="interruptor"><input type="checkbox" data-accion="dificiles" ${p.dificiles ? 'checked' : ''}><span><b>Letras difíciles</b><small>También pueden salir K, Q, W, X, Y y Z.</small></span></label>
-    <button class="btn pri grande" data-accion="empezar" ${puede ? '' : 'disabled'}>${conectados < 2 ? 'Falta 1 jugador para empezar' : p.categorias.length < MIN_CAT ? `Pon al menos ${MIN_CAT} categorías` : `Empezar con ${conectados}`}</button>
+    <button class="btn pri grande" data-accion="empezar" ${puede ? '' : 'disabled'}>${conectados < 2 ? 'Falta 1 jugador para empezar' : conectados > MAX_JUG ? `Máximo ${MAX_JUG} jugadores · hay ${conectados}` : p.categorias.length < MIN_CAT ? `Pon al menos ${MIN_CAT} categorías` : `Empezar con ${conectados}`}</button>
   </div>${reglasCortas()}`;
 }
 
