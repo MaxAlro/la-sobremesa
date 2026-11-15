@@ -43,7 +43,7 @@ function armar(st) {
   };
 }
 
-// alCambiar(estadoMarcador, { soyAnfitrion, yo, nombreAnfitrion, codigo })
+// alCambiar(estadoMarcador, { soyAnfitrion, yo, nombreAnfitrion, anfitrionFuera, puedeTomarControl, codigo })
 // alIrse(motivo): 'sala' (el anfitrión regresó a la sala), 'unirse' (no está sentado) o 'no-existe'
 export async function enlazar(codigo, { pantalla = false, alCambiar, alIrse }) {
   if (!codigoValido(codigo) || !(await existeSala(codigo))) { alIrse('no-existe'); return null; }
@@ -69,7 +69,8 @@ export async function enlazar(codigo, { pantalla = false, alCambiar, alIrse }) {
     if (st.soyAnfitrion) mantenerRegistro(st);
     base = armar(st);
     // Copia: el marcador modifica su estado y aquí se compara contra lo último que llegó
-    alCambiar(JSON.parse(JSON.stringify(base)), { soyAnfitrion: st.soyAnfitrion, yo: st.yo, nombreAnfitrion: st.nombreAnfitrion, codigo });
+    const anf = st.jugadores[st.anfitrion];
+    alCambiar(JSON.parse(JSON.stringify(base)), { soyAnfitrion: st.soyAnfitrion, yo: st.yo, nombreAnfitrion: st.nombreAnfitrion, anfitrionFuera: !!anf && !anf.conectado, puedeTomarControl: !!st.puedeTomarControl, codigo });
   }
 
   // El anfitrión anota en el estado a cada jugador que llega, para que su nombre y sus puntos
@@ -139,6 +140,7 @@ export async function enlazar(codigo, { pantalla = false, alCambiar, alIrse }) {
   return {
     uid: sala.uid,
     guardar,
-    terminar: () => sala.actualizar({ juego: null })
+    terminar: () => sala.actualizar({ juego: null }),
+    tomarControl: () => sala.tomarControl()
   };
 }

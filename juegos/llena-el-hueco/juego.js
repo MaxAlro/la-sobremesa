@@ -15,7 +15,7 @@
 // el control a otro jugador, el celular de ese jugador sigue desde donde iba.
 
 import { abrirSala, existeSala, codigoValido } from '../../nucleo/sala.js';
-import { opcionesControl, avisoAnfitrion } from '../../nucleo/control.js';
+import { opcionesControl, avisoAnfitrion, tomarControl } from '../../nucleo/control.js';
 
 const Q = new URLSearchParams(location.search);
 const CODIGO = (Q.get('sala') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
@@ -616,6 +616,7 @@ document.addEventListener('click', async (ev) => {
   switch (a) {
     case 'menu': ui.menu = !ui.menu; ui.pasar = false; pintar(); break;
     case 'pasar-control': ui.pasar = !ui.pasar; pintar(); break;
+    case 'tomar-control': await tomarControl(ui.sala, aviso); break;
     case 'dar-control': {
       const x = ui.st?.jugadores?.[b.dataset.uid];
       ui.menu = false; ui.pasar = false;

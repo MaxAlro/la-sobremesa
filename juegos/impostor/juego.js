@@ -30,7 +30,7 @@
 // control a otro jugador, el celular de ese jugador sigue desde donde iba.
 
 import { abrirSala, existeSala, codigoValido } from '../../nucleo/sala.js';
-import { opcionesControl, avisoAnfitrion } from '../../nucleo/control.js';
+import { opcionesControl, avisoAnfitrion, tomarControl } from '../../nucleo/control.js';
 import { base, parecidas } from '../../nucleo/texto.js';
 import { MAZOS_BASE, ELEGIDOS_DE_INICIO } from './mazos-base.js';
 import { normalizar, familias } from './formato.js';
@@ -878,6 +878,7 @@ document.addEventListener('click', async (ev) => {
   switch (a) {
     case 'menu': ui.menu = !ui.menu; ui.pasar = false; pintar(); break;
     case 'pasar-control': ui.pasar = !ui.pasar; pintar(); break;
+    case 'tomar-control': await tomarControl(ui.sala, aviso); break;
     case 'dar-control': {
       const x = ui.st?.jugadores?.[b.dataset.uid];
       ui.menu = false; ui.pasar = false;

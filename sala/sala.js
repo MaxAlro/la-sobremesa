@@ -1,7 +1,7 @@
 // La Sobremesa · página de sala (jugador o pantalla)
 import { hayFirebase } from '../nucleo/datos.js';
 import { crearSala, existeSala, abrirSala, normalizarCodigo, codigoValido, perfilGuardado } from '../nucleo/sala.js';
-import { avisoAnfitrion } from '../nucleo/control.js';
+import { avisoAnfitrion, tomarControl } from '../nucleo/control.js';
 import { estadoInicial as marcadorInicial } from '../marcador/sala-marcador.js';
 
 const params = new URLSearchParams(location.search);
@@ -286,6 +286,7 @@ document.addEventListener('click', async (e) => {
       else { try { await navigator.clipboard.writeText(enlaceSala()); aviso('Enlace copiado'); } catch { aviso(enlaceSala(), 5000); } }
       break;
     case 'control': await s.pasarControl(b.dataset.uid); aviso('Listo, le pasaste el control'); break;
+    case 'tomar-control': await tomarControl(s, aviso); break;
     case 'sacar': {
       const x = st.jugadores[b.dataset.uid];
       if (b.dataset.confirmar !== '1') { b.dataset.confirmar = '1'; b.textContent = '¿Seguro?'; setTimeout(() => { if (b.isConnected) { b.dataset.confirmar = ''; b.textContent = 'Sacar'; } }, 3000); break; }

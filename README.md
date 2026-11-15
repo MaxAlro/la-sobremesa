@@ -14,6 +14,7 @@ Es una página estática publicada con GitHub Pages: no hay que instalar nada.
   opcional: sin ella, el código y lo común se ven en todos los celulares. El primer jugador es el anfitrión; puede pasar
   el control (desde la sala o desde el menú de anfitrión en cada juego) o sacar a alguien. Si se desconecta, sigue
   siendo el anfitrión y la sala lo espera: el control solo cambia cuando él se lo pasa a otro o sale de la sala.
+  Si lleva 3 minutos sin conexión, a los demás les aparece "Tomar el control" (nunca cambia solo).
 - **Marcador en sala:** el anfitrión elige "Marcador" en la sala y todos pasan a él. Cada quien anota sus puntos
   desde su celular y ve cómo van; el anfitrión tiene todas las funciones del marcador (rondas, jugadores sin celular,
   corregir cualquier puntaje, deshacer) y puede activar "Solo yo capturo". La tele muestra el marcador grande con el
@@ -71,7 +72,7 @@ nucleo/base.css     botones, campos, paneles, cartas
 nucleo/config.js    datos del proyecto de Firebase (no son secretos)
 nucleo/datos.js     capa de datos: Firebase o modo de prueba local
 nucleo/sala.js      crear, entrar, roles, anfitrión, reconexión
-nucleo/control.js   pasar el control desde un juego; aviso si el anfitrión se desconecta
+nucleo/control.js   pasar el control desde un juego; aviso y "Tomar el control" si el anfitrión se desconecta
 nucleo/texto.js     comparar palabras escritas a mano (acentos, faltas de ortografía)
 sala/               página de la sala (vista de jugador y de pantalla)
 juegos/             cada juego en su carpeta; el celular del anfitrión lleva las reglas

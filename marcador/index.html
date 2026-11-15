@@ -285,7 +285,7 @@
   }
   state??=defaultState();
   // En la sala: quién soy, si tengo el control y si el anfitrión puso el candado
-  let enlace=null, soyAnf=!EN_SALA, yo=null, anfNombre='', cargado=!EN_SALA;
+  let enlace=null, soyAnf=!EN_SALA, yo=null, anfNombre='', anfFuera=false, puedeTomar=false, cargado=!EN_SALA;
   const esAnf=()=>!EN_SALA||soyAnf;
   const puedeEditar=pid=>!EN_SALA||soyAnf||(pid===yo&&!state.candado);
 
@@ -513,7 +513,7 @@
   // ---------------------------------------------------------- sala
   function pintarSala(){
     const b=$('#salaBarra');b.classList.remove('hidden');
-    b.innerHTML=`<span class="sb-cod">Sala <b>${esc(SALA)}</b></span><span class="sb-txt">${soyAnf?(state.candado?'Solo tú capturas los puntos.':'Cada quien anota sus puntos desde su celular.'):`Anfitrión: <b>${esc(anfNombre||'—')}</b>`}</span>${soyAnf?`<span class="sb-acc"><button class="btn${state.candado?' on':''}" id="candadoBtn" aria-pressed="${!!state.candado}" title="Si lo activas, solo tú puedes capturar">${state.candado?'Solo yo capturo ✓':'Solo yo capturo'}</button><button class="btn" id="terminarBtn">Volver a la sala</button></span>`:''}`;
+    b.innerHTML=`<span class="sb-cod">Sala <b>${esc(SALA)}</b></span><span class="sb-txt">${soyAnf?(state.candado?'Solo tú capturas los puntos.':'Cada quien anota sus puntos desde su celular.'):`Anfitrión: <b>${esc(anfNombre||'—')}</b>${anfFuera?' (sin conexión)':''}`}</span>${!soyAnf&&puedeTomar?'<span class="sb-acc"><button class="btn" id="tomarBtn">Tomar el control</button></span>':''}${soyAnf?`<span class="sb-acc"><button class="btn${state.candado?' on':''}" id="candadoBtn" aria-pressed="${!!state.candado}" title="Si lo activas, solo tú puedes capturar">${state.candado?'Solo yo capturo ✓':'Solo yo capturo'}</button><button class="btn" id="terminarBtn">Volver a la sala</button></span>`:''}`;
   }
   // Llega un cambio de la sala: si solo cambiaron puntos, se actualizan las casillas sin perder lo que alguien escribe
   function aplicarRemoto(n,info){
@@ -521,7 +521,7 @@
     const ganeControl=cargado&&info.soyAnfitrion&&!soyAnf;
     const cambioRol=info.soyAnfitrion!==soyAnf||info.yo!==yo, nuevaRonda=cargado&&n.rounds.length>state.rounds.length;
     const estructura=!cargado||cambioRol||firma(n)!==firma(state);
-    soyAnf=info.soyAnfitrion;yo=info.yo;anfNombre=info.nombreAnfitrion||'';
+    soyAnf=info.soyAnfitrion;yo=info.yo;anfNombre=info.nombreAnfitrion||'';anfFuera=!!info.anfitrionFuera;puedeTomar=!!info.puedeTomarControl;
     n.bestPick=state.bestPick;state=n;
     document.body.classList.toggle('jugador-sala',!soyAnf);
     if(nuevaRonda){quickRound=state.rounds.at(-1).id;if(!soyAnf)showToast(`Nueva ronda: ${state.rounds.at(-1).name}`)}
@@ -530,7 +530,7 @@
     if(ganeControl)showToast('Ahora tú tienes el control del marcador',3500);
     if(!estructura){
       $$('.score').forEach(i=>{if(i!==document.activeElement)i.value=raw(i.dataset.player,i.dataset.round)??''});
-      renderSide();return;
+      renderSide();if(EN_SALA)pintarSala();return;
     }
     // Se vuelve a pintar todo, conservando la casilla donde está escribiendo
     const a=document.activeElement;let foco=null;
@@ -567,6 +567,13 @@
   document.addEventListener('click',async e=>{
     if(e.target.closest('#candadoBtn')&&soyAnf){state.candado=!state.candado;save();render();showToast(state.candado?'Listo: solo tú capturas los puntos':'Listo: cada quien anota sus puntos')}
     if(e.target.closest('#terminarBtn')&&soyAnf&&confirm('¿Volver a la sala? Los puntos se guardan y pueden seguir después.'))await enlace?.terminar();
+    // Si quien tiene el control lleva unos minutos sin conexión, cualquiera puede tomarlo
+    if(e.target.closest('#tomarBtn')&&!soyAnf&&puedeTomar){
+      const quien=anfNombre||'Quien tenía el control';
+      if(!confirm(`¿Tomar el control? ${quien} ya no lo tendrá, aunque vuelva.`))return;
+      try{const ok=await enlace?.tomarControl();if(!ok)showToast(`${quien} ya volvió o alguien más tomó el control`,3500)}
+      catch(x){console.error(x);showToast('No se pudo. Revisa tu conexión.',4000)}
+    }
   });
   if(EN_SALA)conectarSala();
 
