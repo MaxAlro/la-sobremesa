@@ -11,10 +11,11 @@
 //   secreto             pilas de cartas, manos y quién mandó cada respuesta. Solo lo lee el anfitrión.
 //   mazos/<id>          { nombre, frases: [{ t, h }], respuestas: [texto] }   (fuera de la sala)
 //
-// Las reglas del juego las aplica el celular del anfitrión (función motor). Si se desconecta,
-// el control pasa a otro jugador y su celular sigue desde donde iba.
+// Las reglas del juego las aplica el celular del anfitrión (función motor). Si le pasa
+// el control a otro jugador, el celular de ese jugador sigue desde donde iba.
 
 import { abrirSala, existeSala, codigoValido } from '../../nucleo/sala.js';
+import { opcionesControl, avisoAnfitrion } from '../../nucleo/control.js';
 
 const Q = new URLSearchParams(location.search);
 const CODIGO = (Q.get('sala') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
@@ -366,7 +367,7 @@ function pintar() {
   if (PANTALLA) return pintarPantalla(st, e);
   // Si alguien escribe en una carta en blanco, no se le cierra el teclado cuando llegan cambios
   const a = document.activeElement, foco = a?.dataset?.blanca != null ? { pos: a.dataset.blanca, ini: a.selectionStart, fin: a.selectionEnd } : null;
-  $app.innerHTML = `<main class="jugador">${barra(st, e)}${cuerpo(st, e)}${tablaPuntos(st, e)}</main>`;
+  $app.innerHTML = `<main class="jugador">${barra(st, e)}${avisoAnfitrion(st)}${cuerpo(st, e)}${tablaPuntos(st, e)}</main>`;
   if (foco) { const t = document.querySelector(`[data-blanca="${foco.pos}"]`); if (t) { t.focus(); try { t.setSelectionRange(foco.ini, foco.fin); } catch {} } }
 }
 
@@ -382,6 +383,7 @@ function barra(st, e) {
       <span class="codigo-mini">${esc(CODIGO)}</span>
       ${st.soyAnfitrion ? `<div class="envoltura-menu"><button class="rol" data-accion="menu" aria-expanded="${ui.menu}">Anfitrión ▾</button>${ui.menu ? `<div class="menu" role="menu">
         ${e.fase && e.fase !== 'preparando' ? '<button data-accion="reiniciar">Empezar otra partida</button>' : ''}
+        ${opcionesControl(st, ui.pasar)}
         <button data-accion="a-sala">Volver a la sala</button>
       </div>` : ''}</div>` : ''}
     </div>
@@ -612,7 +614,15 @@ document.addEventListener('click', async (ev) => {
   const a = b.dataset.accion;
   if (a === 'op' || a === 'ver-puntos') return;
   switch (a) {
-    case 'menu': ui.menu = !ui.menu; pintar(); break;
+    case 'menu': ui.menu = !ui.menu; ui.pasar = false; pintar(); break;
+    case 'pasar-control': ui.pasar = !ui.pasar; pintar(); break;
+    case 'dar-control': {
+      const x = ui.st?.jugadores?.[b.dataset.uid];
+      ui.menu = false; ui.pasar = false;
+      try { await ui.sala.pasarControl(b.dataset.uid); aviso(`Listo, ahora ${x?.nombre || 'otro jugador'} tiene el control`); }
+      catch (err) { console.error(err); aviso('No se pudo. Revisa tu conexión.'); pintar(); }
+      break;
+    }
     case 'a-sala':
       ui.menu = false;
       if (confirm('¿Volver a la sala? La partida termina.')) await ui.sala.elegirJuego(null);

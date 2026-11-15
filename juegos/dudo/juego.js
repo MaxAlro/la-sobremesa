@@ -28,10 +28,11 @@
 //   privado/<uid>/dados   los dados de cada quien: { reparto, d [] }
 //   acciones/<uid>/jugada  { reparto, i (cuántas apuestas había), t: apuesta | dudo | calzo, c, n }
 //
-// Las reglas las aplica el celular del anfitrión (función motor). Si se desconecta, el control
-// pasa a otro jugador y su celular sigue desde donde iba.
+// Las reglas las aplica el celular del anfitrión (función motor). Si le pasa el control a
+// otro jugador, el celular de ese jugador sigue desde donde iba.
 
 import { abrirSala, existeSala, codigoValido } from '../../nucleo/sala.js';
+import { opcionesControl, avisoAnfitrion } from '../../nucleo/control.js';
 
 const Q = new URLSearchParams(location.search);
 const CODIGO = (Q.get('sala') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
@@ -325,7 +326,7 @@ function pintar() {
   if (!st) return;
   const e = st.estado || {};
   if (PANTALLA) return pintarPantalla(st, e);
-  $app.innerHTML = `<main class="jugador">${barra(st, e)}${cuerpo(st, e)}</main>`;
+  $app.innerHTML = `<main class="jugador">${barra(st, e)}${avisoAnfitrion(st)}${cuerpo(st, e)}</main>`;
 }
 
 function barra(st, e) {
@@ -338,6 +339,7 @@ function barra(st, e) {
         ${e.fase === 'apostando' ? '<button data-accion="repetir">Repartir de nuevo esta ronda</button>' : ''}
         ${enJuego ? '<button data-accion="ajustes">Cambiar ajustes</button>' : ''}
         ${enJuego || e.puntos ? '<button data-accion="reiniciar">Empezar de cero</button>' : ''}
+        ${opcionesControl(st, ui.pasar)}
         <button data-accion="a-sala">Volver a la sala</button>
       </div>` : ''}</div>` : ''}
     </div>
@@ -670,7 +672,15 @@ document.addEventListener('click', async (ev) => {
   if (['calzar', 'unDado'].includes(a)) return;
   const falla = (x) => { console.error(x); aviso('No se pudo. Revisa tu conexión.'); };
   switch (a) {
-    case 'menu': ui.menu = !ui.menu; pintar(); break;
+    case 'menu': ui.menu = !ui.menu; ui.pasar = false; pintar(); break;
+    case 'pasar-control': ui.pasar = !ui.pasar; pintar(); break;
+    case 'dar-control': {
+      const x = ui.st?.jugadores?.[b.dataset.uid];
+      ui.menu = false; ui.pasar = false;
+      try { await ui.sala.pasarControl(b.dataset.uid); aviso(`Listo, ahora ${x?.nombre || 'otro jugador'} tiene el control`); }
+      catch (err) { console.error(err); aviso('No se pudo. Revisa tu conexión.'); pintar(); }
+      break;
+    }
     case 'a-sala':
       ui.menu = false;
       if (['preparando', 'fin'].includes(e.fase) || !e.fase || confirm('¿Volver a la sala? La partida termina.')) await ui.sala.elegirJuego(null);

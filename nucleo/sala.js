@@ -16,7 +16,6 @@ import { conectar } from './datos.js';
 // Sin I, O ni Q para que no se confundan con 1, 0 o la O.
 const LETRAS = 'ABCDEFGHJKLMNPRSTUVWXYZ';
 const UN_DIA = 24 * 60 * 60 * 1000;
-const ESPERA_ANFITRION = 8000; // ms sin anfitrión conectado antes de que otro tome el control
 
 export const normalizarCodigo = (c) => String(c || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
 export const codigoValido = (c) => /^[A-Z]{4}$/.test(c);
@@ -87,23 +86,22 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
     }
   }
 
-  // Si el anfitrión lleva un rato desconectado, el primer jugador conectado (por orden de llegada) toma el control.
+  // El anfitrión no cambia aunque se desconecte: la sala lo espera hasta que vuelva o le pase el control a otro.
+  // Solo si la sala no tiene anfitrión (recién creada desde la tele, o el anfitrión salió sin nadie a quien
+  // pasárselo), el primer jugador conectado (por orden de llegada) toma el control.
   function revisarAnfitrion() {
     clearTimeout(temporizador);
     if (!sala || rol !== 'jugador' || !sala.jugadores?.[db.uid]) return;
     const a = sala.anfitrion, j = sala.jugadores || {};
-    const anfitrionPresente = a && j[a] && j[a].conectado;
-    if (anfitrionPresente) return;
+    if (a && j[a]) return;
     const siguiente = Object.entries(j).filter(([, x]) => x.conectado).sort((x, y) => (x[1].unido || 0) - (y[1].unido || 0))[0]?.[0];
     if (siguiente !== db.uid) return;
-    const espera = a && j[a] ? ESPERA_ANFITRION : 0; // sin anfitrión (sala recién creada desde la tele): de inmediato
     temporizador = setTimeout(async () => {
       await db.transaccion(`${base}/anfitrion`, (actual) => {
-        const jj = sala?.jugadores || {};
-        if (actual && jj[actual]?.conectado) return undefined;
+        if (actual && sala?.jugadores?.[actual]) return undefined;
         return db.uid;
       }).catch(() => {});
-    }, espera);
+    }, 0);
   }
 
   apagar.push(db.on(base, (v) => {

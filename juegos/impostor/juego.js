@@ -26,10 +26,11 @@
 //                    voto { reparto, etapa, a [] }, adivina { reparto, t }
 //
 // Los mazos incluidos están en mazos-base.js; los propios viven en Firebase (palabras/<id>) y se
-// arman en mazos.html. Las reglas las aplica el celular del anfitrión (función motor). Si se
-// desconecta, el control pasa a otro jugador y su celular sigue desde donde iba.
+// arman en mazos.html. Las reglas las aplica el celular del anfitrión (función motor). Si le pasa el
+// control a otro jugador, el celular de ese jugador sigue desde donde iba.
 
 import { abrirSala, existeSala, codigoValido } from '../../nucleo/sala.js';
+import { opcionesControl, avisoAnfitrion } from '../../nucleo/control.js';
 import { base, parecidas } from '../../nucleo/texto.js';
 import { MAZOS_BASE, ELEGIDOS_DE_INICIO } from './mazos-base.js';
 import { normalizar, familias } from './formato.js';
@@ -462,7 +463,7 @@ function pintar() {
   if (PANTALLA) return pintarPantalla(st, e);
   const a = document.activeElement;
   const foco = a?.dataset?.foco ? { k: a.dataset.foco, ini: a.selectionStart, fin: a.selectionEnd } : null;
-  $app.innerHTML = `<main class="jugador">${barra(st, e)}${cuerpo(st, e)}</main>`;
+  $app.innerHTML = `<main class="jugador">${barra(st, e)}${avisoAnfitrion(st)}${cuerpo(st, e)}</main>`;
   if (foco) { const t = document.querySelector(`[data-foco="${foco.k}"]`); if (t && !t.disabled) { t.focus(); try { t.setSelectionRange(foco.ini, foco.fin); } catch {} } }
 }
 
@@ -476,6 +477,7 @@ function barra(st, e) {
         ${enJuego && e.fase !== 'resultado' ? '<button data-accion="repetir">Repartir otra palabra</button>' : ''}
         ${enJuego ? '<button data-accion="ajustes">Cambiar ajustes</button>' : ''}
         ${enJuego || e.puntos ? '<button data-accion="reiniciar">Empezar otra partida</button>' : ''}
+        ${opcionesControl(st, ui.pasar)}
         <button data-accion="a-sala">Volver a la sala</button>
       </div>` : ''}</div>` : ''}
     </div>
@@ -874,7 +876,15 @@ document.addEventListener('click', async (ev) => {
   if (['form-adivina', 'modo'].includes(a)) return;
   const falla = (x) => { console.error(x); aviso('No se pudo. Revisa tu conexión.'); };
   switch (a) {
-    case 'menu': ui.menu = !ui.menu; pintar(); break;
+    case 'menu': ui.menu = !ui.menu; ui.pasar = false; pintar(); break;
+    case 'pasar-control': ui.pasar = !ui.pasar; pintar(); break;
+    case 'dar-control': {
+      const x = ui.st?.jugadores?.[b.dataset.uid];
+      ui.menu = false; ui.pasar = false;
+      try { await ui.sala.pasarControl(b.dataset.uid); aviso(`Listo, ahora ${x?.nombre || 'otro jugador'} tiene el control`); }
+      catch (err) { console.error(err); aviso('No se pudo. Revisa tu conexión.'); pintar(); }
+      break;
+    }
     case 'a-sala':
       ui.menu = false;
       if (['preparando', 'resultado'].includes(e.fase) || !e.fase || confirm('¿Volver a la sala? La ronda termina.')) await ui.sala.elegirJuego(null);

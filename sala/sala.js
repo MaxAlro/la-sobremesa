@@ -1,6 +1,7 @@
 // La Sobremesa · página de sala (jugador o pantalla)
 import { hayFirebase } from '../nucleo/datos.js';
 import { crearSala, existeSala, abrirSala, normalizarCodigo, codigoValido, perfilGuardado } from '../nucleo/sala.js';
+import { avisoAnfitrion } from '../nucleo/control.js';
 import { estadoInicial as marcadorInicial } from '../marcador/sala-marcador.js';
 
 const params = new URLSearchParams(location.search);
@@ -210,7 +211,7 @@ function pintarEspera(st) {
       const desc = sigue || (lleno ? `Hasta ${j.max} jugadores · hay ${conectados(st)} en la mesa` : j.desc);
       return `<button class="juego" data-accion="juego" data-juego="${j.id}" ${j.pronto || lleno ? 'disabled' : ''}><span class="ic">${j.ic}</span><div><strong>${j.nombre}</strong><span>${desc}</span></div>${j.pronto ? '<span class="insignia">Pronto</span>' : lleno ? `<span class="insignia">Máx. ${j.max}</span>` : '<span class="ir">Jugar ›</span>'}</button>`;
     }).join('')}</div>`
-    : `<div class="panel espera">Esperando a que <b>${esc(st.nombreAnfitrion || 'el anfitrión')}</b> elija el juego…</div>`;
+    : avisoAnfitrion(st) || `<div class="panel espera">Esperando a que <b>${esc(st.nombreAnfitrion || 'el anfitrión')}</b> elija el juego…</div>`;
   $app.innerHTML = `<main class="jugador">
     ${barra(st)}
     ${invitar}
