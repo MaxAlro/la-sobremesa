@@ -38,7 +38,7 @@ const CODIGO = (Q.get('sala') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(
 const PANTALLA = Q.get('rol') === 'pantalla';
 const DE_PRUEBA = ['local', 'sdk', 'emulador', 'emuauth'];
 
-const MIN_JUG = 2;
+const MIN_JUG = 2, MAX_JUG = 9;
 const OPCIONES = { dados: 5, calzar: true, unDado: true };
 const PREP_GUARDADA = 'sobremesa-dudo-prep';
 const UNO = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis'];
@@ -281,6 +281,7 @@ async function nuevaPartida(opciones, orden, e) {
   const con = ui.st.lista.filter((j) => j.conectado).map((j) => j.uid);
   orden = lista(orden).filter((u) => con.includes(u)).concat(con.filter((u) => !lista(orden).includes(u)));
   if (orden.length < MIN_JUG) return aviso(`Se necesitan al menos ${MIN_JUG} jugadores`);
+  if (orden.length > MAX_JUG) return aviso(`Dudo es para ${MAX_JUG} jugadores como máximo`);
   const dados = Object.fromEntries(orden.map((u) => [u, opciones.dados]));
   const base = { tipo: 'dudo', opciones, partida: (e.partida || 0) + 1, ronda: 0, orden, dados, fuera: null, puntos: e.puntos || null, historial: e.historial || null };
   await repartir(base, azar(orden), false, {});
@@ -384,7 +385,7 @@ function preparar(st, e) {
     <label class="modo ${p.unDado ? 'on' : ''}"><input type="checkbox" data-accion="unDado" ${p.unDado ? 'checked' : ''}><span><b>Ronda de un dado</b><small>Cuando alguien se queda con un dado, empieza esa ronda y nadie puede cambiar de número: solo se sube la cantidad.</small></span></label>
     ${conservados ? '<p class="sub">Los puntos de las partidas anteriores se conservan.</p>' : ''}
   </div>
-  <div class="pie"><button class="btn pri grande" data-accion="empezar" ${n >= MIN_JUG ? '' : 'disabled'}>${n < MIN_JUG ? `Falta ${MIN_JUG - n} para empezar` : `Empezar con ${n}`}</button></div>
+  <div class="pie"><button class="btn pri grande" data-accion="empezar" ${n >= MIN_JUG && n <= MAX_JUG ? '' : 'disabled'}>${n < MIN_JUG ? `Falta ${MIN_JUG - n} para empezar` : n > MAX_JUG ? `Máximo ${MAX_JUG} jugadores · hay ${n}` : `Empezar con ${n}`}</button></div>
   ${reglasCortas()}`;
 }
 

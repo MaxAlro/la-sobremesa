@@ -184,6 +184,8 @@
     tr.ausente td:first-child,.q-name small{opacity:.6}
     .sala-esquina{display:none}
     body.display.en-sala .sala-esquina{position:fixed;right:2vw;bottom:2.4vh;display:flex;align-items:center;gap:1.4vh;padding:1.2vh 1.6vh;border-radius:1.4vh;background:var(--fondo-3);border:1px solid var(--linea);opacity:.92}
+    /* Con muchos jugadores las últimas filas llegan hasta abajo: se deja libre el espacio del código de la sala */
+    body.display.en-sala .board-list.larga{padding-right:calc(30vh + 2vw)}
     .sala-esquina canvas{width:11vh;height:11vh;border-radius:.8vh;image-rendering:pixelated;display:block}
     .sala-esquina div{display:flex;flex-direction:column;gap:.4vh;font-size:1.7vh;color:var(--suave);line-height:1.1}
     .sala-esquina b{font-family:var(--fuente-titulo);font-size:4.4vh;letter-spacing:.14em;color:var(--acento)}
@@ -258,7 +260,7 @@
   const MOBILE=matchMedia('(max-width:700px),(max-height:500px) and (pointer:coarse)');
   // Colores de jugador: se leen de las variables --jugador-N de ../nucleo/tema.css
   const css=getComputedStyle(document.documentElement);
-  const COLORS=Array.from({length:10},(_,i)=>css.getPropertyValue(`--jugador-${i+1}`).trim()).filter(c=>/^#[0-9a-f]{6}$/i.test(c));
+  const COLORS=Array.from({length:12},(_,i)=>css.getPropertyValue(`--jugador-${i+1}`).trim()).filter(c=>/^#[0-9a-f]{6}$/i.test(c));
   if(!COLORS.length)COLORS.push('#ff8a6b');
   const store={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
   const uid=()=>crypto.randomUUID?.()??Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -451,7 +453,7 @@
       const g=gain(x.id), d=g?`<span class="bdelta${g.now?' now':''}" title="${esc(g.round.name)}">${g.text}</span>`:'<span></span>';
       return `<li class="brow${x.pos===1&&hi!==lo?' lead':''}" data-id="${x.id}" style="--c:${colorOf(x.id)};--w:${w}%"><span class="bplace">${x.pos}</span><span class="bname">${esc(x.name)}</span>${d}<span class="bscore">${fmt(x.score)}</span></li>`;
     }).join('');
-    el.innerHTML=`<div class="board-in"><div class="board-head"><div><p class="eyebrow">${meta}</p><h1>${esc(state.title)}</h1></div><button class="btn board-fs" id="fsBtn" title="Pantalla completa (doble clic)">⛶</button></div>${list.length?`<ol class="board-list" style="--n:${Math.max(list.length,4)}">${rows}</ol>`:'<div class="board-empty">Agrega jugadores en la pantalla de captura.</div>'}</div>`;
+    el.innerHTML=`<div class="board-in"><div class="board-head"><div><p class="eyebrow">${meta}</p><h1>${esc(state.title)}</h1></div><button class="btn board-fs" id="fsBtn" title="Pantalla completa (doble clic)">⛶</button></div>${list.length?`<ol class="board-list${list.length>=7?' larga':''}" style="--n:${Math.max(list.length,4)}">${rows}</ol>`:'<div class="board-empty">Agrega jugadores en la pantalla de captura.</div>'}</div>`;
     el.querySelectorAll('.brow').forEach(n=>{
       const id=n.dataset.id, top=n.getBoundingClientRect().top, sc=list.find(x=>x.id===id).score;
       if(before[id]!==undefined&&before[id]!==top)n.animate([{transform:`translateY(${before[id]-top}px)`},{transform:'none'}],{duration:600,easing:'cubic-bezier(.2,.8,.2,1)'});
