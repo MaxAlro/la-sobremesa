@@ -16,6 +16,7 @@ import { conectar } from './datos.js';
 // Sin I, O ni Q para que no se confundan con 1, 0 o la O.
 const LETRAS = 'ABCDEFGHJKLMNPRSTUVWXYZ';
 const UN_DIA = 24 * 60 * 60 * 1000;
+export const ESPERA_TOMAR_CONTROL = 3 * 60 * 1000; // ms con el anfitrión desconectado antes de que otro pueda tomar el control a mano
 
 export const normalizarCodigo = (c) => String(c || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
 export const codigoValido = (c) => /^[A-Z]{4}$/.test(c);
@@ -72,7 +73,7 @@ export async function existeSala(codigo) {
 export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
   const db = await conectar();
   const base = `salas/${codigo}/publico`;
-  let sala = null, rol = null, perfil = null, temporizador = null, apagar = [];
+  let sala = null, rol = null, perfil = null, temporizador = null, temporizadorAusente = null, apagar = [];
 
   const toca = () => db.set(`${base}/actividad`, db.marcaTiempo()).catch(() => {});
 
@@ -104,6 +105,28 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
     }, 0);
   }
 
+  // Desde cuándo veo desconectado al anfitrión. Se guarda en este dispositivo (sobrevive a recargar la página)
+  // y sirve para ofrecer "Tomar el control" si no vuelve en unos minutos. Nunca cambia el anfitrión por sí solo.
+  const CLAVE_AUSENTE = `sobremesa-ausente-${codigo}`;
+  const leerAusente = () => { try { return JSON.parse(sessionStorage.getItem(CLAVE_AUSENTE) || 'null'); } catch { return null; } };
+  const guardarAusente = (v) => { try { v ? sessionStorage.setItem(CLAVE_AUSENTE, JSON.stringify(v)) : sessionStorage.removeItem(CLAVE_AUSENTE); } catch {} };
+  function anfitrionAusenteDesde() {
+    const a = sala?.anfitrion, x = a && sala.jugadores[a];
+    if (!x || x.conectado) return null;
+    const g = leerAusente();
+    return g && g.uid === a ? g.desde : null;
+  }
+  function revisarAusencia() {
+    clearTimeout(temporizadorAusente);
+    const a = sala?.anfitrion, x = a && sala.jugadores[a];
+    if (!x || x.conectado) { guardarAusente(null); return; }
+    let g = leerAusente();
+    if (!g || g.uid !== a) { g = { uid: a, desde: Date.now() }; guardarAusente(g); }
+    const falta = g.desde + ESPERA_TOMAR_CONTROL - Date.now();
+    // Al cumplirse la espera, se vuelve a pintar para que aparezca el botón
+    if (falta > 0) temporizadorAusente = setTimeout(() => alCambiar?.(api.estado()), falta + 50);
+  }
+
   apagar.push(db.on(base, (v) => {
     if (!v || !v.creada) { sala = null; alPerder?.(); return; }
     const anterior = sala;
@@ -113,6 +136,7 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
     // Al cambiar de página, la desconexión de la página anterior puede llegar después: me vuelvo a marcar presente
     else if (rol === 'jugador' && perfil && sala.jugadores[db.uid]?.conectado === false) presentarme().catch(() => {});
     revisarAnfitrion();
+    revisarAusencia();
     alCambiar?.(api.estado());
   }));
   apagar.push(db.alConectar(() => { presentarme().catch(() => {}); }));
@@ -133,6 +157,9 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
         rol,
         soyAnfitrion: sala.anfitrion === db.uid,
         nombreAnfitrion: sala.jugadores[sala.anfitrion]?.nombre || null,
+        // El anfitrión lleva ESPERA_TOMAR_CONTROL desconectado: cualquier jugador conectado puede tomar el control
+        puedeTomarControl: rol === 'jugador' && !!sala.jugadores[db.uid]?.conectado && sala.anfitrion !== db.uid
+          && (anfitrionAusenteDesde() ?? Infinity) + ESPERA_TOMAR_CONTROL <= Date.now(),
         hayPantalla: Object.keys(sala.pantallas).some((u) => u !== db.uid) || (rol === 'pantalla'),
         pantallasConectadas: Object.keys(sala.pantallas).length
       };
@@ -169,6 +196,16 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
     // Escribe varias rutas dentro de la parte pública de la sala, por ejemplo { 'puntos/uid/ronda': '5' }
     async actualizar(cambios) { await db.update(base, cambios); toca(); },
     async pasarControl(uid) { await db.set(`${base}/anfitrion`, uid); toca(); },
+    // Solo si el anfitrión sigue desconectado (si volvió o alguien más ya lo tomó, no hace nada). Devuelve true si lo tomó.
+    async tomarControl() {
+      const r = await db.transaccion(`${base}/anfitrion`, (actual) => {
+        if (actual === db.uid) return undefined;
+        if (actual && sala?.jugadores?.[actual]?.conectado) return undefined;
+        return db.uid;
+      });
+      if (r.ok) toca();
+      return r.ok && r.valor === db.uid;
+    },
     async sacarJugador(uid) { await db.remove(`${base}/jugadores/${uid}`); await db.remove(`salas/${codigo}/privado/${uid}`); toca(); },
     async salir() {
       if (rol === 'jugador') {
@@ -182,7 +219,7 @@ export async function abrirSala(codigo, { alCambiar, alPerder } = {}) {
       rol = null;
       api.cerrar();
     },
-    cerrar() { clearTimeout(temporizador); apagar.forEach((f) => typeof f === 'function' && f()); apagar = []; }
+    cerrar() { clearTimeout(temporizador); clearTimeout(temporizadorAusente); apagar.forEach((f) => typeof f === 'function' && f()); apagar = []; }
   };
   return api;
 }

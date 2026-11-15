@@ -6,7 +6,11 @@
 //   opcionesControl(st, abierto)  botones para el menú del anfitrión ("Pasar el control" y, abierto, la lista)
 //                                 data-accion="pasar-control" abre o cierra la lista;
 //                                 data-accion="dar-control" data-uid="..." se lo pasa a esa persona
-//   avisoAnfitrion(st)            aviso para los demás cuando el anfitrión se desconectó
+//   avisoAnfitrion(st)            aviso para los demás cuando el anfitrión se desconectó; si lleva 3 minutos fuera,
+//                                 trae el botón data-accion="tomar-control"
+//   await tomarControl(sala, aviso)  pregunta y, si confirman, toma el control (para ese botón)
+
+import { ESPERA_TOMAR_CONTROL } from './sala.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
 
@@ -24,5 +28,24 @@ export function opcionesControl(st, abierto) {
 export function avisoAnfitrion(st) {
   const a = st.anfitrion && st.jugadores?.[st.anfitrion];
   if (!a || a.conectado || st.soyAnfitrion) return '';
-  return `<p class="aviso-anfitrion"><b>${esc(a.nombre)}</b>, quien tiene el control, se desconectó. Todo sigue en cuanto vuelva.</p>`;
+  const min = Math.round(ESPERA_TOMAR_CONTROL / 60000);
+  if (st.puedeTomarControl) {
+    return `<div class="aviso-anfitrion"><p><b>${esc(a.nombre)}</b>, quien tiene el control, se desconectó hace más de ${min} minutos. Si no va a volver, puedes tomar el control.</p>
+      <button class="btn pri" data-accion="tomar-control">Tomar el control</button></div>`;
+  }
+  return `<div class="aviso-anfitrion"><p><b>${esc(a.nombre)}</b>, quien tiene el control, se desconectó. Todo sigue en cuanto vuelva; si en ${min} minutos no ha vuelto, podrán tomar el control.</p></div>`;
+}
+
+export async function tomarControl(sala, aviso) {
+  const st = sala.estado();
+  const nombre = st?.nombreAnfitrion || 'Quien tenía el control';
+  if (!confirm(`¿Tomar el control? ${nombre} ya no lo tendrá, aunque vuelva.`)) return false;
+  try {
+    const ok = await sala.tomarControl();
+    aviso(ok ? 'Listo, ahora tienes el control' : `${nombre} ya volvió o alguien más tomó el control`);
+    return ok;
+  } catch (x) {
+    console.error(x); aviso('No se pudo. Revisa tu conexión.');
+    return false;
+  }
 }
